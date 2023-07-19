@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CargoController;
 use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\EmpleadoController;
+use App\Http\Controllers\AsistenciaController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DepartamentoController;
 
@@ -106,6 +107,14 @@ Route::prefix('horarios')->group(function () {
     Route::delete('/{id}', [HorarioController::class, 'destroy']);
     // Ruta para obtener los empleados de una hora
     Route::get('/{horarioId}/empleados', [HorarioController::class, 'getEmployees']);
+});
+
+// Rutas relacionadas con los asistencia
+Route::prefix('asistencia')->group(function () {
+    // Obtener todos las asistencia
+    Route::get('/', [AsistenciaController::class, 'index']);
+    // Crear un nuevo horario
+    Route::post('/', [AsistenciaController::class, 'store']);
 });
         
 

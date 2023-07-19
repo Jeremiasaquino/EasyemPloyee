@@ -71,6 +71,9 @@ class EmpleadoController extends Controller
             'numero_identificacion' => 'required|unique:empleados',
             'numero_seguro_social' => 'required|unique:empleados',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'cargo_id' => 'required|exists:cargo,id',
+            'departamento_id' => 'required|exists:departamento,id',
+            'horario_id' => 'required|exists:horario,id',
             'estado' => 'required|in:activo,suspendido,inactivo',
         ]);
 
@@ -131,6 +134,9 @@ class EmpleadoController extends Controller
             'numero_identificacion' => 'required|unique:empleados,numero_identificacion,' . $empleado->id,
             'numero_seguro_social' => 'required|unique:empleados,numero_seguro_social,' . $empleado->id,
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'cargo_id' => 'required|exists:cargo,id',
+            'departamento_id' => 'required|exists:departamento,id',
+            'horario_id' => 'required|exists:horario,id',
             'estado' => 'required|in:activo,suspendido,inactivo',
         ]);
 

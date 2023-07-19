@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Cargo;
+use App\Models\Horario;
+use App\Models\Departamento;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Empleado extends Model
 {
@@ -74,6 +77,22 @@ class Empleado extends Model
     public function getNombreCompletoAttribute()
     {
         return $this->nombre . ' ' . $this->apellidos;
+    }
+
+
+    public function cargo()
+    {
+        return $this->belongsTo(Cargo::class, 'cargo_id');
+    }
+
+    public function horario()
+    {
+        return $this->belongsTo(Horario::class, 'horario_id');
+    }
+
+    public function departamento()
+    {
+        return $this->belongsTo(Departamento::class, 'departamento_id');
     }
     
 }

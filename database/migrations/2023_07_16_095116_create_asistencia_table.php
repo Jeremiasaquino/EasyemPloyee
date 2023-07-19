@@ -15,11 +15,10 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('empleado_id');
             $table->date('fecha');
-            $table->string('dias'); // Agregar campo "dias"
             $table->time('hora_entrada');
             $table->time('hora_salida')->nullable();
             $table->time('hora_descanso_inicio');
-            $table->time('hora_descanso_fin');
+            $table->time('hora_descanso_fin')->nullable();
             $table->time('hora_extra')->nullable();
             $table->enum('estado', ['Presente', 'Ausente', 'Tarde']); // Agregar campo "estado" como enum
             $table->timestamps();
