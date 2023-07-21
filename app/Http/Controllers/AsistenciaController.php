@@ -2,122 +2,193 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Empleado;
-use App\Models\Asistencia;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\Controller;
+use App\Models\Asistencia;
+use App\Models\Empleado;
+use Carbon\Carbon;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
 
 class AsistenciaController extends Controller
 {
+    // Función index para obtener los datos solicitados
     public function index()
     {
-        $asistencias = Asistencia::with('empleado')->get();
+        try {
+            // Obtener la fecha actual
+            $currentDate = now()->format('Y-m-d');
 
-        $data = [];
-        foreach ($asistencias as $asistencia) {
-            $dia = $asistencia->getDayOfWeek();
-            $fecha = $asistencia->fecha;
-            $departamento = $asistencia->empleado->departamento;
-            $codigoEmpleado = $asistencia->empleado->codigo_empleado;
-            $nombreEmpleado = $asistencia->empleado->nombre;
-            $horaEntrada = $asistencia->hora_entrada;
-            $horaSalida = $asistencia->hora_salida;
-            $estado = $asistencia->estado;
-            $horaCalculada = $asistencia->calcularHoras();
+            // Obtenemos las asistencias con la relación empleado para el día actual
+            $asistencias = Asistencia::with('empleado')
+                ->whereDate('fecha', $currentDate)
+                ->get();
 
-            $data[] = [
-                'dia' => $dia,
-                'fecha' => $fecha,
-                'departamento' => $departamento,
-                'codigo_empleado' => $codigoEmpleado,
-                'empleado' => $nombreEmpleado,
-                'hora_entrada' => $horaEntrada,
-                'hora_salida' => $horaSalida,
-                'estado' => $estado,
-                'hora_trabajada' => $horaCalculada,
-            ];
+            // Verificar si hay asistencias encontradas
+            if ($asistencias->isEmpty()) {
+                // Respuesta con código 204 (sin contenido) indicando que no hay asistencia registrada para el día actual
+                return response()->json(null, Response::HTTP_NO_CONTENT);
+            }
+
+            // Formatear los datos de asistencia para la respuesta
+            $data = [];
+            foreach ($asistencias as $asistencia) {
+                // Convertimos las horas trabajadas a formato de 8 horas y 0 minutos
+                $horasTrabajadas = sprintf('%d:%02d', floor($asistencia->horas_trabajadas), ($asistencia->horas_trabajadas - floor($asistencia->horas_trabajadas)) * 60);
+
+                $data[]  = [
+                    'dia_semana' => $asistencia->dia_semana,
+                    'fecha' => $asistencia->fecha,
+                    'departamento' => $asistencia->empleado->departamento->name,
+                    'codigo_empleado' => $asistencia->empleado->codigo_empleado,
+                    'empleado' => $asistencia->empleado->getNombreCompletoAttribute(), // Asumiendo que el campo se llama 'nombre'
+                    'hora_entrada' => $asistencia->hora_entrada,  // Cambiamos el formato de la hora a 'H:i A'
+                    'hora_salida' => $asistencia->hora_salida,  // Cambiamos el formato de la hora a 'H:i A'
+                    'estado' => $asistencia->estado,
+                    'hora_trabajada' => $horasTrabajadas, // Mostramos las horas trabajadas en formato de 8 horas y 0 minutos
+                ];
+            }
+
+            // Respuesta con código 200 (éxito) y los datos en formato JSON
+            return response()->json(['data' => $data], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            echo ($e);
+            // En caso de error, respondemos con un mensaje de error y un código de error 500 (Error interno del servidor)
+            return response()->json(['message' => 'Ha ocurrido un error al obtener las asistencias'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Registros de asistencia recuperados correctamente.',
-            'data' => $data,
-        ]);
     }
 
-    public function store(Request $request)
+    /**
+     * Mostrar la asistencia de un empleado en una fecha específica.
+     *
+     * @param  int  $empleadoId
+     * @param  string  $fecha
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show($empleadoId, $fecha)
     {
-        $validator = Validator::make($request->all(), [
-            'empleado_id' => 'required|exists:empleados,id',
-            'fecha' => 'required|date',
-            'hora_entrada' => 'required|date_format:H:i',
-            'hora_salida' => 'required|date_format:H:i|after:hora_entrada',
-            'hora_descanso_inicio' => 'required|date_format:H:i',
-            'hora_descanso_fin' => 'required|date_format:H:i|after:hora_descanso_inicio',
-        ]);
+        try {
+            $fechaCarbon = Carbon::parse($fecha);
 
-        if ($validator->fails()) {
+            $asistencia = Asistencia::where('empleado_id', $empleadoId)
+                ->where('fecha', $fechaCarbon->toDateString())
+                ->firstOrFail();
+
+            return response()->json([
+                'success' => true,
+                'data' => $asistencia,
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error de validación.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $empleado = Empleado::find($request->empleado_id);
-
-        if (!$empleado) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Empleado no encontrado.',
+                'message' => 'No se encontró la asistencia para el empleado en la fecha especificada.',
             ], 404);
         }
-
-        $horario = $empleado->horario;
-        $horaEntradaEstablecida = $horario->hora_entrada;
-        $horaSalidaEstablecida = $horario->hora_salida;
-
-        $horaEntrada = $request->hora_entrada;
-        $horaSalida = $request->hora_salida;
-        $horaDescansoInicio = $request->hora_descanso_inicio;
-        $horaDescansoFinal = $request->hora_descanso_final;
-
-        $estado = 'A tiempo';
-        if ($horaEntrada > $horaEntradaEstablecida) {
-            $estado = 'Tarde';
-        }
-
-        $horaExtra = null;
-        if ($horaSalida > $horaSalidaEstablecida) {
-            $horaExtra = $this->calcularHoraExtra($horaSalidaEstablecida, $horaSalida);
-        }
-
-        $asistencia = Asistencia::create([
-            'empleado_id' => $request->empleado_id,
-            'fecha' => $request->fecha,
-            'hora_entrada' => $horaEntrada,
-            'hora_salida' => $horaSalida,
-            'hora_descanso_inicio' => $horaDescansoInicio,
-            'hora_descanso_fin' => $horaDescansoFinal,
-            'estado' => $estado,
-            'hora_extra' => $horaExtra,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Registro de asistencia creado correctamente.',
-            'data' => $asistencia,
-        ]);
     }
 
-    private function calcularHoraExtra($horaSalidaEstablecida, $horaSalida)
+    /**
+     * Registrar la asistencia de un empleado.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function store(Request $request)
     {
-        $horaSalidaEstablecida = strtotime($horaSalidaEstablecida);
-        $horaSalida = strtotime($horaSalida);
+        try {
+            // Validar los datos de la solicitud
+            $this->validate($request, [
+                'empleado_id' => 'required|exists:empleados,id',
+                'hora_salida' => 'sometimes|nullable|date_format:h:i A', // hh:mm AM/PM
+                'hora_entrada' => 'required|date_format:h:i A', // hh:mm AM/PM
+                'hora_descanso_inicio' => 'required|date_format:h:i A', // hh:mm AM/PM
+                'hora_descanso_fin' => 'required|date_format:h:i A', // hh:mm AM/PM
+            ]);
 
-        $segundosHoraExtra = $horaSalida - $horaSalidaEstablecida;
-        $horasHoraExtra = $segundosHoraExtra / 3600;
+            // Obtener el empleado por su ID
+            $empleado = Empleado::findOrFail($request->empleado_id);
 
-        return $horasHoraExtra;
+            // Convertir las horas a formato de 24 horas antes de guardar en el modelo Asistencia
+            $horaEntrada = Carbon::createFromFormat('h:i A', $request->hora_entrada)->format('H:i');
+            $horaSalida = ($request->has('hora_salida')) ? Carbon::createFromFormat('h:i A', $request->hora_salida)->format('H:i') : null;
+            $horaDescansoInicio = Carbon::createFromFormat('h:i A', $request->hora_descanso_inicio)->format('H:i');
+            $horaDescansoFin = Carbon::createFromFormat('h:i A', $request->hora_descanso_fin)->format('H:i');
+
+            // Verificar la existencia del modelo Horario asociado al empleado antes de acceder a sus atributos
+            if (!$empleado->horario) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El empleado no tiene un horario asociado.',
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Obtener el horario del empleado
+            $horarioEntrada = Carbon::parse($empleado->horario->hora_entrada);
+            $horarioSalida = Carbon::parse($empleado->horario->hora_salida);
+
+            // Obtener las horas de entrada y salida de la solicitud
+            $horaEntrada = Carbon::parse($request->hora_entrada);
+            $horaSalida = ($request->has('hora_salida')) ? Carbon::parse($request->hora_salida) : null;
+
+            // Verificar que la hora de salida sea posterior a la hora de entrada
+            if ($horaSalida && $horaSalida->lessThanOrEqualTo($horaEntrada)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La hora de salida debe ser posterior a la hora de entrada.',
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Verificar si el empleado llegó tarde o está ausente
+            if ($horaEntrada > $horarioEntrada) {
+                $estado = 'Tarde';
+            } elseif ($horaEntrada->equalTo($horarioEntrada)) {
+                $estado = 'Presente';
+            } else {
+                $estado = 'Ausente';
+            }
+
+            // Calcular las horas trabajadas y las horas extra
+            $horasTrabajadas = ($horaSalida) ? $horaSalida->diffInHours($horaEntrada) : 0;
+            $horasNormales = 8; // Ejemplo: 8 horas diarias como límite de horas normales
+            $horaExtra = max(0, $horasTrabajadas - $horasNormales);
+
+            // Obtener la fecha y hora actual
+            $fechaHoraActual = Carbon::now();
+
+            // Obtener el día de la semana actual en formato texto (por ejemplo, "lunes")
+            $diaSemanaActual = $fechaHoraActual->format('l');
+
+            // Crear la instancia de Asistencia y guardarla en la base de datos
+            $asistencia = new Asistencia([
+                'empleado_id' => $empleado->id,
+                'dia_semana' => $diaSemanaActual,
+                'fecha' =>  $fechaHoraActual,
+                'hora_entrada' => $horaEntrada,
+                'hora_salida' => $horaSalida,
+                'hora_descanso_inicio' => $horaDescansoInicio,
+                'hora_descanso_fin' => $horaDescansoFin,
+                'hora_extra' => $horaExtra,
+                'estado' => $estado,
+                'created_at' => $fechaHoraActual,
+                'updated_at' => $fechaHoraActual,
+            ]);
+
+            $asistencia->save();
+
+            return response()->json([
+                'success' => true,
+                'data' => $asistencia,
+            ], Response::HTTP_CREATED);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación. Asegúrate de enviar los datos correctamente.',
+                'errors' => $e->errors(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al guardar la asistencia.',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

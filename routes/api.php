@@ -115,6 +115,9 @@ Route::prefix('asistencia')->group(function () {
     Route::get('/', [AsistenciaController::class, 'index']);
     // Crear un nuevo horario
     Route::post('/', [AsistenciaController::class, 'store']);
+    // Ruta para obtener la asistencia de un empleado en una fecha específica
+    Route::get('/{empleadoId}/{fecha}', 'AsistenciaController@show');
+
 });
         
 
