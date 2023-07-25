@@ -4,8 +4,14 @@ namespace App\Models;
 
 use App\Models\Cargo;
 use App\Models\Horario;
+use App\Models\Direccion;
 use App\Models\Departamento;
+use App\Models\ContactoEmergencia;
+use App\Models\DocumentoRequirido;
+use App\Models\InformacionLarabol;
+use App\Models\InformacionBancaria;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\HistorialEmpresaAnterior;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Empleado extends Model
@@ -93,6 +99,36 @@ class Empleado extends Model
     public function departamento()
     {
         return $this->belongsTo(Departamento::class, 'departamento_id');
+    }
+
+    public function informacionDirecion()
+    {
+        return $this->hasOne(Direccion::class);
+    }
+
+    public function informacionBancaria()
+    {
+        return $this->hasOne(InformacionBancaria::class);
+    }
+
+    public function contactoEmergencia()
+    {
+        return $this->hasOne(ContactoEmergencia::class);
+    }
+
+    public function informacionLarabol()
+    {
+        return $this->hasOne(InformacionLarabol::class);
+    }
+
+    public function documentoRequirido()
+    {
+        return $this->hasOne(DocumentoRequirido::class);
+    }
+
+    public function historialEmpresaAnterior()
+    {
+        return $this->hasOne(HistorialEmpresaAnterior::class);
     }
     
 }
