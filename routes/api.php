@@ -8,6 +8,7 @@ use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\AsistenciaController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\SolicitudesController;
 use App\Http\Controllers\DepartamentoController;
 
 
@@ -118,6 +119,15 @@ Route::prefix('asistencia')->group(function () {
     // Ruta para obtener la asistencia de un empleado en una fecha específica
     Route::get('/{empleadoId}/{fecha}', 'AsistenciaController@show');
 
+});
+
+// Rutas para las solicitudes de permisos/ausencias
+Route::prefix('solicitudes')->group(function () {
+    Route::get('/', [SolicitudesController::class, 'index'])->name('solicitudes.index');
+    Route::post('/', [SolicitudesController::class, 'store'])->name('solicitudes.store');
+    Route::get('/{id}', [SolicitudesController::class, 'show'])->name('solicitudes.show');
+    Route::put('/{id}', [SolicitudesController::class, 'update'])->name('solicitudes.update');
+    Route::delete('/{id}', [SolicitudesController::class, 'destroy'])->name('solicitudes.destroy');
 });
         
 
