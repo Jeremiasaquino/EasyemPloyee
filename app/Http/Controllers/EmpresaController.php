@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class EmpresaController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Mostrar una lista de las empresas.
      *
      * @return \Illuminate\Http\Response
      */
@@ -21,7 +21,7 @@ class EmpresaController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Almacenar una nueva empresa en la base de datos.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -44,7 +44,7 @@ class EmpresaController extends Controller
             'sector' => 'required',
             'numero_empleados' => 'nullable|in:1-10,11-50,51-100,101-500,500+',
             'moneda' => 'required',
-            'separador_decimal' => 'required|in:, .',
+            'separador_decimal' => 'nullable|in:, .',
         ]);
 
         // Crear una nueva empresa
@@ -54,7 +54,7 @@ class EmpresaController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Mostrar los detalles de una empresa específica.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -62,13 +62,17 @@ class EmpresaController extends Controller
     public function show($id)
     {
         // Obtener la empresa por su ID
-        $empresa = Empresa::findOrFail($id);
+        $empresa = Empresa::find($id);
+
+        if (!$empresa) {
+            return response()->json(['message' => 'Empresa no encontrada'], 404);
+        }
 
         return response()->json($empresa, 200);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualizar los datos de una empresa existente.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
@@ -77,7 +81,11 @@ class EmpresaController extends Controller
     public function update(Request $request, $id)
     {
         // Obtener la empresa por su ID
-        $empresa = Empresa::findOrFail($id);
+        $empresa = Empresa::find($id);
+
+        if (!$empresa) {
+            return response()->json(['message' => 'Empresa no encontrada'], 404);
+        }
 
         // Validar los datos de entrada
         $request->validate([
@@ -95,7 +103,7 @@ class EmpresaController extends Controller
             'sector' => 'required',
             'numero_empleados' => 'required',
             'moneda' => 'required',
-            'separador_decimal' => 'required',
+            'separador_decimal' => 'nullable',
         ]);
 
         // Actualizar los datos de la empresa
@@ -105,7 +113,7 @@ class EmpresaController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Eliminar una empresa específica de la base de datos.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -113,7 +121,11 @@ class EmpresaController extends Controller
     public function destroy($id)
     {
         // Obtener la empresa por su ID
-        $empresa = Empresa::findOrFail($id);
+        $empresa = Empresa::find($id);
+
+        if (!$empresa) {
+            return response()->json(['message' => 'Empresa no encontrada'], 404);
+        }
 
         // Eliminar la empresa
         $empresa->delete();

@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CargoController;
+use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\AsistenciaController;
@@ -118,7 +119,6 @@ Route::prefix('asistencia')->group(function () {
     Route::post('/', [AsistenciaController::class, 'store']);
     // Ruta para obtener la asistencia de un empleado en una fecha específica
     Route::get('/{empleadoId}/{fecha}', 'AsistenciaController@show');
-
 });
 
 // Rutas para las solicitudes de permisos/ausencias
@@ -128,6 +128,15 @@ Route::prefix('solicitudes')->group(function () {
     Route::get('/{id}', [SolicitudesController::class, 'show'])->name('solicitudes.show');
     Route::put('/{id}', [SolicitudesController::class, 'update'])->name('solicitudes.update');
     Route::delete('/{id}', [SolicitudesController::class, 'destroy'])->name('solicitudes.destroy');
+});
+
+// Rutas API de Empresas
+Route::prefix('empresas')->group(function () {
+    Route::get('/', [EmpresaController::class, 'index']);        // Mostrar todas las empresas
+    Route::post('/', [EmpresaController::class, 'store']);       // Crear una nueva empresa
+    Route::get('/{id}', [EmpresaController::class, 'show']);     // Mostrar los detalles de una empresa específica
+    Route::put('/{id}', [EmpresaController::class, 'update']);   // Actualizar una empresa existente
+    Route::delete('/{id}', [EmpresaController::class, 'destroy']); // Eliminar una empresa específica
 });
         
 
