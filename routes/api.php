@@ -4,6 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EmpleadoController;
+use App\Http\Controllers\DepartamentoController;
+use App\Http\Controllers\HorarioController;
+use App\Http\Controllers\CargoController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\TokenController;
 
@@ -24,13 +27,13 @@ use App\Http\Controllers\TokenController;
 Route::post('/login', [LoginController::class, 'login'])->name('login');
 
 // Rutas protegidas por el middleware de autenticación 'auth:sanctum'
-Route::middleware('auth:sanctum')->group(function () {
+// Route::middleware('auth:sanctum')->group(function () {
     
         // Ruta para cerrar sesión
     Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth:api');
 // Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::get('/validar-token', [TokenController::class, 'validarToken'])->middleware('auth:api');
+    Route::get('/validar-token', [TokenController::class, 'validarToken'])->middleware('auth:api');
 // Route::middleware('auth:api')->get('/validar-token', function (Request $request) {
 //     return $request->user();
 // });
@@ -125,4 +128,4 @@ Route::prefix('asistencia')->group(function () {
 
 });
 
-});
+// });
