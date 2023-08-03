@@ -41,15 +41,18 @@ class LoginController extends Controller
             $user = Auth::user();
 
             // Aquí puedes agregar el código adicional que necesites después de autenticar al usuario
-
+            // Generar un token de acceso con tiempo de expiración
+            // $token = $user->createToken($request->email, ['expires_at' => now()->addHours(2)])->plainTextToken;
             // Generar un token de acceso
             $token = $user->createToken($request->email)->plainTextToken;
+            $user->update(['api_token' => $token]);
 
             return response()->json([
-                'success' => true,
+                'success' => 'Autenticado',
                 'message' => 'Inicio de sesión exitoso',
-                'access_token' => $token,
-            ]);
+                'data' => $user,
+                'token' => $token,
+            ],200);
         }
 
         // La autenticación falló
@@ -68,13 +71,12 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         $user = $request->user();
-
-        if ($user) {
-            $user->tokens()->delete();
-        }
-
+        $user->update(['api_token' => null]);
+        // Revocar todos los tokens del usuario
+        $user->tokens()->delete();
+    
         return response()->json([
-            'success' => true,
+            'success' => 'No_Autenticado',
             'message' => 'Cierre de sesión exitoso',
         ]);
     }

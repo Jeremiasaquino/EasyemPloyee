@@ -11,7 +11,7 @@ class Cargo extends Model
     use HasFactory;
 
     protected $table = 'cargo';
-    protected $fillable = ['name'];
+    protected $fillable = ['cargo'];
 
     public function empleado()
     {

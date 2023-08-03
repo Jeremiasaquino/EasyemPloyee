@@ -12,7 +12,7 @@ class Horario extends Model
     protected $table = 'horario';
 
     protected $fillable = [
-        'name',
+        'turno',
         'dias_semana',
         'hora_entrada',
         'hora_salida',

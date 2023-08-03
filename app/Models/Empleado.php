@@ -20,7 +20,6 @@ class Empleado extends Model
         'apellidos',
         'email',
         'telefono',
-        'celular',
         'fecha_nacimiento',
         'genero',
         'edad',
@@ -30,6 +29,7 @@ class Empleado extends Model
         'numero_identificacion',
         'numero_seguro_social',
         'foto',
+        'foto_id',
         'estado',
         'cargo_id',
         'horario_id',
@@ -42,7 +42,7 @@ class Empleado extends Model
      * @var array
      */
     protected $casts = [
-        'fecha_nacimiento' => 'date',
+        'fecha_nacimiento' => 'date:Y-m-d',
         'edad' => 'integer',
         'estado' => 'string',
     ];
@@ -74,6 +74,52 @@ class Empleado extends Model
     public function getNombreCompletoAttribute()
     {
         return $this->nombre . ' ' . $this->apellidos;
+    }
+
+
+    public function cargo()
+    {
+        return $this->belongsTo(Cargo::class, 'cargo_id');
+    }
+
+    public function horario()
+    {
+        return $this->belongsTo(Horario::class, 'horario_id');
+    }
+
+    public function departamento()
+    {
+        return $this->belongsTo(Departamento::class, 'departamento_id');
+    }
+
+    public function informacionDireccion()
+    {
+        return $this->hasOne(Direccion::class);
+    }
+
+    public function informacionBancaria()
+    {
+        return $this->hasOne(InformacionBancaria::class);
+    }
+
+    public function contactoEmergencia()
+    {
+        return $this->hasOne(ContactoEmergencia::class);
+    }
+
+    public function informacionLarabol()
+    {
+        return $this->hasOne(InformacionLarabol::class);
+    }
+
+    public function documentoRequirido()
+    {
+        return $this->hasOne(DocumentoRequirido::class);
+    }
+
+    public function historialEmpresaAnterior()
+    {
+        return $this->hasOne(HistorialEmpresaAnterior::class);
     }
     
 }

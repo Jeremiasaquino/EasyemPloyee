@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('apellidos');
             $table->string('email')->unique();
             $table->string('telefono')->unique();
-            $table->string('celular')->unique();
             $table->date('fecha_nacimiento');
             $table->string('genero');
             $table->integer('edad');
@@ -28,7 +27,8 @@ return new class extends Migration
             $table->string('numero_identificacion')->unique();
             $table->string('numero_seguro_social')->unique();
             $table->string('foto')->nullable();
-            $table->enum('estado', ['activo', 'suspendido', 'inactivo'])->default('activo');
+            $table->string('foto_id')->nullable();
+            $table->enum('estado', ['Activo', 'Suspendido', 'Inactivo'])->default('Activo');
             $table->timestamps();
         });
     }

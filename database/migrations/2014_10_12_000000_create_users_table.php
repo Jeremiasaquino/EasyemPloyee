@@ -13,14 +13,20 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('nombre')->nullable();
+            $table->string('codigo_empleado')->unique()->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('api_token', 80)
+                            ->unique()
+                            ->nullable()
+                            ->default(null);
             $table->rememberToken();
             $table->enum('role', ['Administrador', 'Recursos Humanos', 'Gerente', 'Empleado'])->default('Empleado');
             $table->enum('estado', ['Activo', 'Inactivo'])->default('Activo');
             $table->string('foto')->nullable();
+            $table->string('foto_id')->nullable();
             $table->timestamps();
         });
     }

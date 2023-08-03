@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('horario', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('turno');
             $table->string('dias_semana');
             $table->time('hora_entrada');
             $table->time('hora_salida');

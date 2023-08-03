@@ -19,13 +19,16 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'nombre',
+        'codigo_empleado',
         'empleado_id',
+        'api_token',
         'email',
         'password',
         'role', // Nuevo campo de roles
         'estado', // Nuevo campo de estados
         'foto',
+        'foto_id',
     ];
 
     /**
@@ -50,11 +53,22 @@ class User extends Authenticatable
         'estado'  => 'string',
     ];
 
+    // public function tokens()
+    // {
+    //     return $this->hasMany(Empleado::class);
+    // }
+
     /**
      * Obtener el empleado asociado a este usuario.
      */
+
     public function empleado()
     {
         return $this->belongsTo(Empleado::class);
+    }
+
+    public function role()
+    {
+        return $this->belongsToMany(Empleado::class);
     }
 }
