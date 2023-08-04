@@ -9,6 +9,7 @@ use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\CargoController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\TokenController;
+use App\Http\Controllers\AsistenciaController;
 
 
 
@@ -123,9 +124,10 @@ Route::prefix('asistencia')->group(function () {
     Route::get('/', [AsistenciaController::class, 'index']);
     // Crear un nuevo horario
     Route::post('/', [AsistenciaController::class, 'store']);
+    // Actualizar
+    Route::put('/{id}', [AsistenciaController::class, 'update']);
     // Ruta para obtener la asistencia de un empleado en una fecha específica
     Route::get('/{empleadoId}/{fecha}', 'AsistenciaController@show');
-
 });
 
 // });

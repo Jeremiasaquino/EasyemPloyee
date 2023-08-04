@@ -14,14 +14,15 @@ return new class extends Migration
         Schema::create('asistencia', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('empleado_id');
+            $table->string('dia_semana');
             $table->date('fecha');
-            $table->string('dias'); // Agregar campo "dias"
             $table->time('hora_entrada');
             $table->time('hora_salida')->nullable();
             $table->time('hora_descanso_inicio');
             $table->time('hora_descanso_fin');
             $table->time('hora_extra')->nullable();
             $table->enum('estado', ['Presente', 'Ausente', 'Tarde']); // Agregar campo "estado" como enum
+            $table->enum('descripcion', ['Entrada', 'Descanso', 'Fin Descanso', 'Salida'])->nullable(); // Agregar campo "estado" como enum
             $table->timestamps();
             $table->foreign('empleado_id')->references('id')->on('empleados')->onDelete('cascade');
         });

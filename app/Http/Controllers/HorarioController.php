@@ -136,7 +136,17 @@ class HorarioController extends Controller
     public function destroy($id)
     {
         $horario = Horario::findOrFail($id);
-        $horario->delete();
+        $deleted = $horario->delete();
+
+        if (!$deleted) {
+            // El departamento no fue eliminado
+            return response()->json([
+                'success' => false,
+                'message' => 'No se puede eliminar el horario porque hay empleados asignados a él.',
+            ]);
+        }
+
+        // $horario->delete();
 
         return response()->json([
             'success' => true,

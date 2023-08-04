@@ -136,14 +136,15 @@ class CargoController extends Controller
     {
         $cargo = Cargo::find($id);
 
-        if (!$cargo) {
+        $deleted = $cargo->delete();
+
+        if (!$deleted) {
+            // El departamento no fue eliminado
             return response()->json([
                 'success' => false,
-                'message' => 'Cargo no encontrado',
-            ], 404);
+                'message' => 'No se puede eliminar el departamento porque hay empleados asignados a él.',
+            ]);
         }
-
-        $cargo->delete();
 
         return response()->json([
             'success' => true,

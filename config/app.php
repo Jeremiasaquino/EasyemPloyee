@@ -70,7 +70,6 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
 
     /*
     |--------------------------------------------------------------------------
@@ -82,8 +81,6 @@ return [
     | to any of the locales which will be supported by the application.
     |
     */
-
-    'locale' => 'en',
 
     /*
     |--------------------------------------------------------------------------
@@ -97,7 +94,9 @@ return [
     */
 
     'fallback_locale' => 'en',
-
+    'timezone' => 'America/Santo_Domingo',
+    'locale' => 'es',
+    'fallback_locale' => 'es',
     /*
     |--------------------------------------------------------------------------
     | Faker Locale

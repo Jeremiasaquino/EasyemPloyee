@@ -12,14 +12,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('empleados', function (Blueprint $table) {
+            // $table->unsignedBigInteger('cargo_id');
+            // $table->foreign('cargo_id')->references('id')->on('cargo')->onDelete('cascade');
+            
+            // $table->unsignedBigInteger('horario_id');
+            // $table->foreign('horario_id')->references('id')->on('horario')->onDelete('cascade');
+            
+            // $table->unsignedBigInteger('departamento_id');
+            // $table->foreign('departamento_id')->references('id')->on('departamento')->onDelete('cascade');
+
             $table->unsignedBigInteger('cargo_id');
-            $table->foreign('cargo_id')->references('id')->on('cargo')->onDelete('cascade');
-            
+            $table->foreign('cargo_id')->references('id')->on('cargo')->onDelete('restrict');
+
             $table->unsignedBigInteger('horario_id');
-            $table->foreign('horario_id')->references('id')->on('horario')->onDelete('cascade');
-            
+            $table->foreign('horario_id')->references('id')->on('horario')->onDelete('restrict');
+
             $table->unsignedBigInteger('departamento_id');
-            $table->foreign('departamento_id')->references('id')->on('departamento')->onDelete('cascade');
+            $table->foreign('departamento_id')->references('id')->on('departamento')->onDelete('restrict');
         });
     }
 
