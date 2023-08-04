@@ -9,6 +9,7 @@ use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\AsistenciaController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\DeduccionesController;
 use App\Http\Controllers\SolicitudesController;
 use App\Http\Controllers\DepartamentoController;
 
@@ -137,6 +138,15 @@ Route::prefix('empresas')->group(function () {
     Route::get('/{id}', [EmpresaController::class, 'show']);     // Mostrar los detalles de una empresa específica
     Route::put('/{id}', [EmpresaController::class, 'update']);   // Actualizar una empresa existente
     Route::delete('/{id}', [EmpresaController::class, 'destroy']); // Eliminar una empresa específica
+});
+
+// Rutas para obtener y gestionar deducciones de un empleado específico
+Route::prefix('deducciones')->group(function () {
+    Route::get('/', [DeduccionesController::class, 'index']);
+    Route::get('/{id}', [DeduccionesController::class, 'show']);
+    Route::post('/', [DeduccionesController::class, 'store']);
+    Route::put('/{id}', [DeduccionesController::class, 'update']);
+    Route::delete('/{id}', [DeduccionesController::class, 'destroy']);
 });
         
 

@@ -5,6 +5,9 @@ namespace App\Models;
 use App\Models\Cargo;
 use App\Models\Horario;
 use App\Models\Direccion;
+use App\Models\Prestamos;
+use App\Models\Beneficios;
+use App\Models\Deducciones;
 use App\Models\Departamento;
 use App\Models\ContactoEmergencia;
 use App\Models\DocumentoRequirido;
@@ -130,5 +133,19 @@ class Empleado extends Model
     {
         return $this->hasOne(HistorialEmpresaAnterior::class);
     }
-    
+
+    public function deducciones()
+    {
+        return $this->hasMany(Deducciones::class, 'empleado_id');
+    }
+
+    public function beneficios()
+    {
+        return $this->hasMany(Beneficios::class, 'empleado_id');
+    }
+
+    public function prestamos()
+    {
+        return $this->hasMany(Prestamos::class, 'empleado_id');
+    }
 }
