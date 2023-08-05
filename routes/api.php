@@ -7,8 +7,10 @@ use App\Http\Controllers\CargoController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\EmpleadoController;
+use App\Http\Controllers\PrestamosController;
 use App\Http\Controllers\AsistenciaController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\BeneficiosController;
 use App\Http\Controllers\DeduccionesController;
 use App\Http\Controllers\SolicitudesController;
 use App\Http\Controllers\DepartamentoController;
@@ -147,6 +149,24 @@ Route::prefix('deducciones')->group(function () {
     Route::post('/', [DeduccionesController::class, 'store']);
     Route::put('/{id}', [DeduccionesController::class, 'update']);
     Route::delete('/{id}', [DeduccionesController::class, 'destroy']);
+});
+
+// Rutas para obtener y gestionar beneficios de un empleado específico
+Route::prefix('beneficios')->group(function () {
+    Route::get('/', [BeneficiosController::class, 'index']);
+    Route::get('/{id}', [BeneficiosController::class, 'show']);
+    Route::post('/', [BeneficiosController::class, 'store']);
+    Route::put('/{id}', [BeneficiosController::class, 'update']);
+    Route::delete('/{id}', [BeneficiosController::class, 'destroy']);
+});
+
+// Rutas para obtener y gestionar prestamos de un empleado específico
+Route::prefix('prestamos')->group(function () {
+    Route::get('/', [PrestamosController::class, 'index']);
+    Route::get('/{id}', [PrestamosController::class, 'show']);
+    Route::post('/', [PrestamosController::class, 'store']);
+    Route::put('/{id}', [PrestamosController::class, 'update']);
+    Route::delete('/{id}', [PrestamosController::class, 'destroy']);
 });
         
 
