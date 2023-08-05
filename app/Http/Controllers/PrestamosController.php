@@ -9,107 +9,124 @@ use Illuminate\Support\Facades\Validator;
 class PrestamosController extends Controller
 {
     /**
-     * Mostrar una lista de los préstamos de un empleado.
-     *
-     * @param  int  $empleadoId
-     * @return \Illuminate\Http\Response
+     * Display a listing of the resource.
      */
-    public function index($empleadoId)
+    public function index()
     {
-        try {
-            // Obtener los préstamos del empleado
-            $prestamos = Prestamos::where('empleado_id', $empleadoId)->get();
+        $Prestamos = Prestamos::all();
 
-            return response()->json([
-                'success' => true,
-                'data' => $prestamos,
-            ], 200);
-        } catch (\Exception $e) {
-            // En caso de error, devolver una respuesta de error
+        if ($Prestamos->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al obtener los préstamos del empleado.',
-            ], 500);
+                'message' => 'No hay registros en la tabla.',
+            ]);
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => $Prestamos,
+        ]);
     }
 
     /**
-     * Almacenar un nuevo préstamo para un empleado.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $empleadoId
-     * @return \Illuminate\Http\Response
+     * Store a newly created resource in storage.
      */
-    public function store(Request $request, $empleadoId)
+    public function store(Request $request)
     {
-        try {
-            // Validar los datos enviados en el request
-            $validator = Validator::make($request->all(), [
-                'fecha' => 'required|date',
-                'monto' => 'required|numeric',
-            ]);
+        $validator = Validator::make($request->all(), [
+            'fecha' => 'required|date', 'date_format:Y-m-d',
+            'monto' => 'required|numeric',
+            'empleado_id' => 'required|exists:empleados,id',
+        ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Datos inválidos.',
-                    'errors' => $validator->errors(),
-                ], 400);
-            }
-
-            // Crear el nuevo préstamo
-            $prestamo = Prestamos::create([
-                'fecha' => $request->input('fecha'),
-                'monto' => $request->input('monto'),
-                'empleado_id' => $empleadoId,
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'data' => $prestamo,
-            ], 201);
-        } catch (\Exception $e) {
-            // En caso de error, devolver una respuesta de error
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al crear el préstamo.',
-            ], 500);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'msg' => 'Error en los datos enviados', 'errors' => $validator->errors()], 422);
         }
+
+        $Prestamos = Prestamos::create([
+            'empleado_id' => $request->input('empleado_id'),
+            'fecha' => $request->input('fecha'),
+            'monto' => $request->input('monto'),
+        ]);
+
+        return response()->json(['success' => true, 'msg' => 'Prestamo creado con éxito', 'Beneficios' => $Prestamos], 201);
     }
 
     /**
-     * Eliminar un préstamo específico de un empleado.
-     *
-     * @param  int  $empleadoId
-     * @param  int  $prestamoId
-     * @return \Illuminate\Http\Response
+     * Display the specified resource.
      */
-    public function destroy($empleadoId, $prestamoId)
+    public function show(string $id)
     {
-        try {
-            // Buscar el préstamo por id y empleado_id para asegurar que pertenece al empleado
-            $prestamo = Prestamos::where('id', $prestamoId)->where('empleado_id', $empleadoId)->first();
+        $Prestamos = Prestamos::find($id);
 
-            if (!$prestamo) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'El préstamo no existe o no pertenece al empleado.',
-                ], 404);
-            }
-
-            // Eliminar el préstamo
-            $prestamo->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'El préstamo ha sido eliminado exitosamente.',
-            ], 200);
-        } catch (\Exception $e) {
-            // En caso de error, devolver una respuesta de error
+        if (!$Prestamos) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al eliminar el préstamo.',
-            ], 500);
+                'message' => 'Prestamo no encontrado',
+            ], 404);
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => $Prestamos,
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'fecha' => 'required|date', 'date_format:Y-m-d',
+            'monto' => 'required|numeric',
+            'empleado_id' => 'required|exists:empleados,id',
+        ]);
+
+        $Prestamos = Prestamos::find($id);
+
+        if (!$Prestamos) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registro no encontrado.',
+            ]);
+        }
+
+        // Actualizar los campos del modelo con los datos del formulario
+        $Prestamos->update([
+            'empleado_id' => $request->input('empleado_id'),
+            'fecha' => $request->input('fecha'),
+            'monto' => $request->input('monto'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Registro actualizado exitosamente.',
+            'data' => $Prestamos,
+        ]);
+    }
+
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $Prestamos = Prestamos::find($id);
+
+        if (!$Prestamos) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registro no encontrado.',
+            ]);
+        }
+
+        $Prestamos->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Registro eliminado exitosamente.',
+        ]);
     }
 }
