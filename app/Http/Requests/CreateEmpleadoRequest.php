@@ -32,7 +32,7 @@ class CreateEmpleadoRequest extends FormRequest
              'estado_civil' => 'required|in:Soltero,Casado,Divorciado,Viudo',
              'tipo_identificacion' => 'required|in:Cedula,Pasaporte',
              'numero_identificacion' => 'required|string|unique:empleados',
-             'numero_seguro_social' => 'string|unique:empleados',
+             'numero_seguro_social' => 'nullable|string|unique:empleados',
              'telefono' => 'required|string|unique:empleados',
              'email' => 'required|email|unique:empleados',
              'estado' => 'required|in:Activo,Inactivo,Suspendido,Vacaciones,Licencia,Terminado',

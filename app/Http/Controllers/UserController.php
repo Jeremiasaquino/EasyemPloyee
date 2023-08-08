@@ -80,7 +80,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
             'role' => 'required|in:Administrador',
-            'estado' => 'required|in:Activo,Inactivo',
+            'estado' => 'required|in:Activo',
         ], [
             'email.required' => 'El email es obligatorio.',
             'email.unique' => 'El email debe ser unico.',
@@ -132,7 +132,7 @@ class UserController extends Controller
         $request->validate([
             'codigo_empleado' => 'required|unique:users,codigo_empleado,' . $id,
             'role' => 'required|in:Recursos Humanos,Gerente,Empleado',
-            'estado' => 'required|in:Activo',
+            'estado' => 'required|in:Activo,Inactivo',
             'foto' => 'nullable|string',
             'foto_id' => 'nullable|string',
         ], [
@@ -152,8 +152,10 @@ class UserController extends Controller
         }
         
         $user->codigo_empleado = $empleado->codigo_empleado;
+        $user->nombre = $request->input('nombre');
         $user->role = $request->input('role');
         $user->estado = $request->input('estado');
+        $user->email = $request->input('email');
         $user->foto = $request->input('foto');
         $user->foto_id = $request->input('foto_id');
         $user->empleado_id = $empleado->id;
@@ -184,12 +186,13 @@ class UserController extends Controller
             'role' => 'required|in:Administrador',
             'foto_id' => 'nullable|string',
             'foto' => 'nullable|string',
-            'estado' => 'required|in:Activo,Inactivo',
+            'estado' => 'required|in:Activo,' . $id,
             // 'password' => 'required|min:6',
         ], [
             'email.required' => 'El email es obligatorio.'. ' '.  $user->email,
             'email.unique' => 'Existe un usuario con este email.' . ' '.  $user->email,
             'nombre.required' => 'El nombre es obligatorio.'. ' '.  $user->nombre,
+            'estado.in' => 'El Administrador no puede estar Inactivo.'
             // 'password.required' => 'El password es obligatorio.',
             // 'password.min' => 'El password debe tener al menos 6 caracteres.',
         ]);
@@ -210,6 +213,7 @@ class UserController extends Controller
             'data' => $user
         ], 200);
     }
+
 
     /**
      * Remove the specified resource from storage.

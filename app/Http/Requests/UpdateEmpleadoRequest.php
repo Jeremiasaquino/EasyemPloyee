@@ -33,7 +33,7 @@ class UpdateEmpleadoRequest extends FormRequest
             'estado_civil' => 'required|in:Soltero,Casado,Divorciado,Viudo|sometimes',
             'tipo_identificacion' => 'required|in:Cedula,Pasaporte|sometimes',
             'numero_identificacion' => 'sometimes|required|string|unique:empleados,numero_identificacion,' . $this->route('id'),
-            'numero_seguro_social' => 'sometimes|string|unique:empleados,numero_seguro_social,' . $this->route('id'),
+            'numero_seguro_social' => 'nullable|string|unique:empleados,numero_seguro_social,' . $this->route('id'),
             'telefono' => 'sometimes|required|string|unique:empleados,telefono,' . $this->route('id'),
             'email' =>  'sometimes|required|email|unique:empleados,email,' . $this->route('id'),
             'estado' => 'required|in:Activo,Inactivo,Suspendido,Vacaciones,Licencia,Terminado|sometimes',

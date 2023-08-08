@@ -145,12 +145,11 @@ class HorarioController extends Controller
                 'message' => 'No se puede eliminar el horario porque hay empleados asignados a él.',
             ]);
         }
-
-        // $horario->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Horario eliminado exitosamente.',
-        ]);
+        else{
+            return response()->json([
+                'success' => true,
+                'message' => 'Horario eliminado exitosamente.',
+            ]);
+        }
     }
 }

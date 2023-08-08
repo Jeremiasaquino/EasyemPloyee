@@ -142,13 +142,14 @@ class CargoController extends Controller
             // El departamento no fue eliminado
             return response()->json([
                 'success' => false,
-                'message' => 'No se puede eliminar el departamento porque hay empleados asignados a él.',
-            ]);
+                'message' => 'No se puede eliminar el cargo porque hay empleados asignados a él.',
+            ], 404);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Cargo eliminado exitosamente',
-        ]);
+        else{
+            return response()->json([
+                'success' => true,
+                'message' => 'Cargo eliminado exitosamente',
+            ],201);
+        }
     }
 }

@@ -36,23 +36,26 @@ class LoginController extends Controller
             ], 422);
         }
 
-        // Verificar si el correo electrónico existe y autenticar al usuario
         if (Auth::attempt($request->only('email', 'password'))) {
             $user = Auth::user();
 
-            // Aquí puedes agregar el código adicional que necesites después de autenticar al usuario
-            // Generar un token de acceso con tiempo de expiración
-            // $token = $user->createToken($request->email, ['expires_at' => now()->addHours(2)])->plainTextToken;
-            // Generar un token de acceso
-            $token = $user->createToken($request->email)->plainTextToken;
-            $user->update(['api_token' => $token]);
-
-            return response()->json([
-                'success' => 'Autenticado',
-                'message' => 'Inicio de sesión exitoso',
-                'data' => $user,
-                'token' => $token,
-            ],200);
+            if ($user->estado == 'Inactivo') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario inactivo, hablar con el administrador.',
+                ], 401);
+            }
+            else{
+                $token = $user->createToken($request->email)->plainTextToken;
+                $user->update(['api_token' => $token]);
+    
+                return response()->json([
+                    'success' => 'Autenticado',
+                    'message' => 'Inicio de sesión exitoso',
+                    'data' => $user,
+                    'token' => $token,
+                ],200);
+            }
         }
 
         // La autenticación falló

@@ -21,20 +21,20 @@ class Departamento extends Model
         return $this->belongsTo(User::class);
     }
     
-    public function empleado()
-{
-    return $this->hasMany(Empleado::class);
-}
 
-public function delete()
-{
-    if ($this->empleado()->count() > 0) {
-        // No permitir la eliminación si hay algún empleado asignado al departamento
-        return false;
+    public function empleado()
+    {
+        return $this->hasMany(Empleado::class);
     }
 
-    parent::delete();
-}
+    public function delete()
+    {
+        if ($this->empleado()->count() > 0) {
+        // No permitir la eliminación si hay algún empleado asignado al departamento
+            return false;
+        }
+        parent::delete();
+        return true;
+    }
 
-    
 }

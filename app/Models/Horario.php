@@ -66,6 +66,7 @@ class Horario extends Model
         }
     
         parent::delete();
+        return true;
     }
     
 }

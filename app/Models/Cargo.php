@@ -26,5 +26,6 @@ class Cargo extends Model
     }
 
     parent::delete();
+    return true;
 }
 }

@@ -69,6 +69,7 @@ class AsistenciaController extends Controller
         $asistencias = Asistencia::with('empleado')
             ->whereDate('fecha', $currentDate)
             ->get();
+            
         // Verificar si hay asistencias encontradas
         if ($asistencias->isEmpty()) {
             // Respuesta con código 204 (sin contenido) indicando que no hay asistencia registrada para el día actual
@@ -78,12 +79,10 @@ class AsistenciaController extends Controller
         // Formatear los datos de asistencia para la respuesta
         $data = [];
         foreach ($asistencias as $asistencia) {
-            // Convertimos las horas trabajadas a formato de 8 horas y 0 minutos
-            $horasTrabajadas = sprintf('%d:%02d', floor($asistencia->horas_trabajadas), ($asistencia->horas_trabajadas - floor($asistencia->horas_trabajadas)) * 60);
-
             $data[]  = [
                 'id' => $asistencia->id,
-                'fecha' => $asistencia->fecha = Carbon::parse($asistencia->fecha),
+                'empleado_id' => $asistencia->empleado_id,
+                'fecha' => $asistencia->fecha = Carbon::parse($asistencia->fecha)->format('Y-m-d'),
                 'dia_semana' => $asistencia->dia_semana,
                 'descripcion' => $asistencia->descripcion,
                 'departamento' => $asistencia->empleado->departamento->departamento,
@@ -92,47 +91,90 @@ class AsistenciaController extends Controller
                 'hora_entrada' => Carbon::parse($asistencia->hora_entrada)->format('h:i A'),
                 'hora_salida' => ($asistencia->hora_salida) ? Carbon::parse($asistencia->hora_salida)->format('h:i A') : null,
                 'estado' => $asistencia->estado,
-                'hora_trabajada' => $horasTrabajadas, // Mostramos las horas trabajadas en formato de 8 horas y 0 minutos
+                'horas_trabajas' => $asistencia->horas_trabajas,
+                'hora_extra' => $asistencia->hora_extra,
+                'hora_descanso_inicio' => ($asistencia->hora_descanso_inicio) ? Carbon::parse($asistencia->hora_descanso_inicio)->format('h:i A') : null,
+                'hora_descanso_fin' => ($asistencia->hora_descanso_fin) ? Carbon::parse($asistencia->hora_descanso_fin)->format('h:i A') : null,
             ];
         }
 
         // Respuesta con código 200 (éxito) y los datos en formato JSON
         return response()->json(['data' => $data], Response::HTTP_OK);
     } catch (\Exception $e) {
-        echo ($e);
         // En caso de error, respondemos con un mensaje de error y un código de error 500 (Error interno del servidor)
         return response()->json(['message' => 'Ha ocurrido un error al obtener las asistencias'], Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 }
 
 
-    /**
-     * Mostrar la asistencia de un empleado en una fecha específica.
-     *
-     * @param  int  $empleadoId
-     * @param  string  $fecha
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function show($empleadoId, $fecha)
-    {
-        try {
-            $fechaCarbon = Carbon::parse($fecha);
+  /**
+ * Mostrar las asistencias pasadas de un empleado.
+ *
+ * @param  int  $empleadoId
+ * @param  string  $fecha
+ * @return \Illuminate\Http\JsonResponse
+ */
+public function asistenciaPasadas($fecha)
+{
+    // $empleadoId,
+    try {
+        $fechaCarbon = Carbon::parse($fecha);
 
-            $asistencia = Asistencia::where('empleado_id', $empleadoId)
-                ->where('fecha', $fechaCarbon->toDateString())
-                ->firstOrFail();
+        // $asistencias = Asistencia::where('fecha', $fecha)
+        //     ->where('fecha', '<=', $fechaCarbon->toDateString())
+        //     ->get();
 
-            return response()->json([
-                'success' => true,
-                'data' => $asistencia,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No se encontró la asistencia para el empleado en la fecha especificada.',
-            ], 404);
+        $asistencias = Asistencia::join('Empleados', 'Asistencia.empleado_id', '=', 'Empleados.id')
+        ->join('Departamento', 'Empleados.departamento_id', '=', 'Departamento.id')
+        ->where('fecha', $fecha)
+        ->where('fecha', '<=', $fechaCarbon->toDateString())
+        ->select('Asistencia.*', 'Empleados.nombre', 'Empleados.codigo_empleado', 'Departamento.departamento')
+        ->get();
+
+
+        foreach ($asistencias as $asistencia) {
+            $asistencia->fecha = Carbon::parse($asistencia->fecha)->format('Y-m-d');
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => $asistencias,
+        ],201);
+
+    } catch (\Exception $e) {
+        echo($e);
+        return response()->json([
+            'success' => false,
+            'message' => 'No se encontraron asistencias para la fecha especificada.',
+        ], 404);
     }
+}
+
+
+
+    public function asistenciaToday($empleadoId)
+{
+    try {
+        $fechaCarbon = Carbon::today();
+        $asistencia = Asistencia::where('empleado_id', $empleadoId)
+        ->where('fecha', $fechaCarbon->toDateString())
+        ->firstOrFail();
+        $asistencia->fecha = Carbon::parse($asistencia->fecha)->format('Y-m-d');
+        $asistencia->hora_descanso_inicio =Carbon::parse($asistencia->hora_descanso_inicio)->format('h:i A');
+        $asistencia->hora_descanso_fin = Carbon::parse($asistencia->hora_descanso_fin)->format('h:i A');
+        $asistencia->hora_entrada = Carbon::parse($asistencia->hora_entrada)->format('h:i A');
+        $asistencia->hora_salida = $asistencia->hora_salida ? Carbon::parse($asistencia->hora_salida)->format('h:i A') : null;
+
+        return response()->json([
+            'success' => true,
+            'data' => $asistencia,
+        ], 201);
+    } catch (\Exception $e) {
+        return response()->json([
+            'descripcion' => '',
+        ], 404);
+    }
+}
 
     /**
      * Registrar la asistencia de un empleado.
@@ -159,8 +201,8 @@ class AsistenciaController extends Controller
             // Convertir las horas a formato de 24 horas antes de guardar en el modelo Asistencia
             $horaEntrada = Carbon::createFromFormat('h:i A', $request->hora_entrada)->format('H:i');
             $horaSalida = ($request->has('hora_salida')) ? Carbon::createFromFormat('h:i A', $request->hora_salida)->format('H:i') : null;
-            $horaDescansoInicio = Carbon::createFromFormat('h:i A', $request->hora_descanso_inicio)->format('H:i');
-            $horaDescansoFin = Carbon::createFromFormat('h:i A', $request->hora_descanso_fin)->format('H:i');
+            $horaDescansoInicio = ($request->has('hora_descanso_inicio')) ? Carbon::createFromFormat('h:i A', $request->hora_descanso_inicio)->format('H:i') : null;
+            $horaDescansoFin = ($request->has('hora_descanso_fin')) ? Carbon::createFromFormat('h:i A', $request->hora_descanso_fin)->format('H:i') : null;
 
             // Verificar la existencia del modelo Horario asociado al empleado antes de acceder a sus atributos
             if (!$empleado->horario) {
@@ -195,11 +237,6 @@ class AsistenciaController extends Controller
                 $estado = 'Ausente';
             }
 
-            // Calcular las horas trabajadas y las horas extra
-            $horasTrabajadas = ($horaSalida) ? $horaSalida->diffInHours($horaEntrada) : 0;
-            $horasNormales = 8; // Ejemplo: 8 horas diarias como límite de horas normales
-            $horaExtra = max(0, $horasTrabajadas - $horasNormales);
-
             Carbon::setLocale('es');
             $fechaHoraActual = Carbon::now();
             $diaSemanaActual = ucfirst($fechaHoraActual->isoFormat('dddd'));
@@ -214,9 +251,10 @@ class AsistenciaController extends Controller
                 'hora_salida' => $horaSalida,
                 'hora_descanso_inicio' => $horaDescansoInicio,
                 'hora_descanso_fin' => $horaDescansoFin,
-                'hora_extra' => $horaExtra,
+                'hora_extra' => '0',
+                'horas_trabajas' => '0',
                 'estado' => $estado,
-                // 'descripcion' => $descripcion,
+                'descripcion' => $request->descripcion,
                 'created_at' => $fechaHoraActual,
                 'updated_at' => $fechaHoraActual,
             ]);
@@ -225,21 +263,22 @@ class AsistenciaController extends Controller
 
             return response()->json([
                 'success' => true,
-                'nombre' => $empleado->nombre . ' ' .$empleado->apellidos,
-                'codigo_empleado' => $empleado->codigo_empleado,
-                'departamento' => $empleado->departamento->departamento,
                 'data' => [
+                    'nombre' => $empleado->nombre . ' ' .$empleado->apellidos,
+                    'codigo_empleado' => $empleado->codigo_empleado,
+                    'departamento' => $empleado->departamento->departamento,
                     'id' => $asistencia->id,
                     'empleado_id' => $asistencia->empleado_id,
                     'dia_semana' => $asistencia->dia_semana,
-                    'fecha' => $asistencia->fecha,
+                    'fecha' => $asistencia->fecha = Carbon::parse($asistencia->fecha)->format('Y-m-d'),
                     'hora_entrada' => Carbon::parse($asistencia->hora_entrada)->format('h:i A'),
                     'hora_salida' => ($asistencia->hora_salida) ? Carbon::parse($asistencia->hora_salida)->format('h:i A') : null,
-                    'hora_descanso_inicio' => Carbon::parse($asistencia->hora_descanso_inicio)->format('h:i A'),
-                    'hora_descanso_fin' => Carbon::parse($asistencia->hora_descanso_fin)->format('h:i A'),
+                    'hora_descanso_inicio' => ($asistencia->hora_descanso_inicio) ? Carbon::parse($asistencia->hora_descanso_inicio)->format('h:i A') : null,
+                    'hora_descanso_fin' => ($asistencia->hora_descanso_fin) ? Carbon::parse($asistencia->hora_descanso_fin)->format('h:i A') : null,
                     'hora_extra' => $asistencia->hora_extra,
+                    'horas_trabajas' => $asistencia->horas_trabajas,
                     'estado' => $asistencia->estado,
-                    // 'descripcion' => $descripcion,
+                    'descripcion' => $asistencia->descripcion,
                     'created_at' => $asistencia->created_at,
                     'updated_at' => $asistencia->updated_at,
                 ],
@@ -259,6 +298,7 @@ class AsistenciaController extends Controller
         }
     }
 
+    
     public function update(Request $request, $id)
 {
     try {
@@ -266,12 +306,24 @@ class AsistenciaController extends Controller
         $asistencia = Asistencia::findOrFail($id);
 
         // Convert the time to 12-hour format before updating the model
-        if ($request->has('hora_salida')) {
-            $request->merge([
-                'hora_salida' => Carbon::createFromFormat('h:i A', $request->hora_salida)->format('H:i')
-            ]);
-        }
+        // if ($request->has('hora_salida')) {
+        //     $request->merge([
+        //         'hora_salida' => Carbon::createFromFormat('h:i A', $request->hora_salida)->format('H:i')
+        //     ]);
+        // }
 
+
+         if ($request->has('hora_salida')) {
+            if ($request->hora_salida === null) {
+                // Reiniciar la hora de salida y dejarla en null
+                $asistencia->hora_salida = null;
+            } else {
+                $request->merge([
+                    'hora_salida' => Carbon::createFromFormat('h:i A', $request->hora_salida)->format('H:i')
+                ]);
+            }
+        }
+        $empleado = Empleado::findOrFail($asistencia->empleado_id);
         // Update only the fields that are sent in the request
         $asistencia->fill($request->only([
             'fecha',
@@ -283,9 +335,10 @@ class AsistenciaController extends Controller
             'hora_entrada',
             'hora_salida',
             'estado',
-            'hora_trabajada'
+            'horas_trabajas',
+            'hora_extra',
+            'descripcion' 
         ]));
-        $asistencia->fecha = Carbon::parse($asistencia->fecha);
         // Save the changes
         $asistencia->save();
 
@@ -293,17 +346,25 @@ class AsistenciaController extends Controller
         return response()->json([
             'data' => [
                 'id' => $asistencia->id,
+                'nombre' => $empleado->nombre . ' ' .$empleado->apellidos,
+                'codigo_empleado' => $empleado->codigo_empleado,
+                'departamento' => $empleado->departamento->departamento,
                 'empleado_id' => $asistencia->empleado_id,
                 'dia_semana' => $asistencia->dia_semana,
-                'fecha' => $asistencia->fecha,
+                'fecha' => $asistencia->fecha = Carbon::parse($asistencia->fecha)->format('Y-m-d'),
                 'hora_entrada' => Carbon::parse($asistencia->hora_entrada)->format('h:i A'),
                 'hora_salida' => ($asistencia->hora_salida) ? Carbon::parse($asistencia->hora_salida)->format('h:i A') : null,
                 'estado' => $asistencia->estado,
-                'hora_trabajada' => $asistencia->hora_trabajada,
+                'horas_trabajas' => $asistencia->horas_trabajas,
+                'hora_extra' => $asistencia->hora_extra,
+                'descripcion' => $asistencia->descripcion,
+                'hora_descanso_inicio' => Carbon::parse($asistencia->hora_descanso_inicio)->format('h:i A'),
+                'hora_descanso_fin' => Carbon::parse($asistencia->hora_descanso_fin)->format('h:i A'),
                 // ...
             ],
         ], Response::HTTP_OK);
     } catch (\Exception $e) {
+        echo($e);
         // In case of error, respond with an error message and a 500 error code (Internal Server Error)
         return response()->json(['message' => 'Ha ocurrido un error al actualizar la asistencia'], Response::HTTP_INTERNAL_SERVER_ERROR);
     }

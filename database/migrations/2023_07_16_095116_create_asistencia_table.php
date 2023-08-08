@@ -18,9 +18,10 @@ return new class extends Migration
             $table->date('fecha');
             $table->time('hora_entrada');
             $table->time('hora_salida')->nullable();
-            $table->time('hora_descanso_inicio');
-            $table->time('hora_descanso_fin');
-            $table->time('hora_extra')->nullable();
+            $table->time('hora_descanso_inicio')->nullable();
+            $table->time('hora_descanso_fin')->nullable();
+            $table->string('hora_extra')->nullable();
+            $table->string('horas_trabajas')->nullable();
             $table->enum('estado', ['Presente', 'Ausente', 'Tarde']); // Agregar campo "estado" como enum
             $table->enum('descripcion', ['Entrada', 'Descanso', 'Fin Descanso', 'Salida'])->nullable(); // Agregar campo "estado" como enum
             $table->timestamps();

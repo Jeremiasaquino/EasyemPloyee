@@ -122,12 +122,15 @@ Route::prefix('horarios')->group(function () {
 Route::prefix('asistencia')->group(function () {
     // Obtener todos las asistencia
     Route::get('/', [AsistenciaController::class, 'index']);
-    // Crear un nuevo horario
+    // Traer asistencia de empleado en particular por Id empleado
+    Route::get('/empleado/{id}', [AsistenciaController::class, 'asistenciaToday']);
+    // Crear una nueva asistencia
     Route::post('/', [AsistenciaController::class, 'store']);
     // Actualizar
     Route::put('/{id}', [AsistenciaController::class, 'update']);
     // Ruta para obtener la asistencia de un empleado en una fecha específica
-    Route::get('/{empleadoId}/{fecha}', 'AsistenciaController@show');
+    // Route::get('/{empleadoId}/{fecha}', [AsistenciaController::class, 'show']);
+    Route::get('/{fecha}', [AsistenciaController::class, 'asistenciaPasadas']);
 });
 
 // });

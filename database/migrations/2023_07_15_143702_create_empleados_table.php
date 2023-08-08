@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('estado_civil');
             $table->string('tipo_identificacion');
             $table->string('numero_identificacion')->unique();
-            $table->string('numero_seguro_social')->unique();
+            $table->string('numero_seguro_social')->unique()->nullable();
             $table->string('foto')->nullable();
             $table->string('foto_id')->nullable();
             $table->enum('estado', ['Activo', 'Suspendido', 'Inactivo'])->default('Activo');

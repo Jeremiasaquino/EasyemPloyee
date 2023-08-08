@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Empleado;
+use App\Models\User;
 use App\Models\InformacionBancaria;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -122,8 +123,8 @@ class EmpleadoController extends Controller
             $this->createInformacionLarabol($empleado, $request);
             $this->createDocumentoRequirido($empleado, $request);
             $this->createHistorialEmpresaAnterior($empleado, $request);
-    
-            $empleado = Empleado::with('informacionDireccion', 'informacionBancaria', 'contactoEmergencia', 'informacionLarabol', 'documentoRequirido', 'historialEmpresaAnterior', 'departamento', 'cargo', 'horario')->find($empleado);
+
+            $empleado = Empleado::with('informacionDireccion', 'informacionBancaria', 'contactoEmergencia', 'informacionLarabol', 'documentoRequirido', 'historialEmpresaAnterior', 'departamento', 'cargo', 'horario')->find($empleado->id);
     
             return response()->json([
                 'success' => true,
@@ -281,16 +282,6 @@ class EmpleadoController extends Controller
         $direccion = $empleado->informacionDireccion;
         $direccion->fill($request->all());
         $direccion->save();
-
-        // $empleado->informacionDireccion()->update([
-            // Campos de InformacionDireccion para actualizar
-            // 'calle' => $request->input('calle'),
-            // 'provincia' => $request->input('provincia'),
-            // 'municipio' => $request->input('municipio'),
-            // 'sector' => $request->input('sector'),
-            // 'numero_residencia' => $request->input('numero_residencia'),
-            // 'referencia_ubicacion' => $request->input('referencia_ubicacion'),
-        // ]);
     }
 
     private function updateInformacionBancaria(Empleado $empleado, Request $request)
@@ -298,12 +289,6 @@ class EmpleadoController extends Controller
         $informacionBancaria = $empleado->informacionBancaria;
         $informacionBancaria->fill($request->all());
         $informacionBancaria->save();
-        // $empleado->informacionBancaria()->update([
-        //     // Campos de InformacionBancaria para actualizar
-        //     'nombre_banco' => $request->input('nombre_banco'),
-        //     'numero_cuenta_bancaria' => $request->input('numero_cuenta_bancaria'),
-        //     'tipo_cuenta' => $request->input('tipo_cuenta'),
-        // ]);
     }
 
     private function updateContactoEmergencia(Empleado $empleado, Request $request)
@@ -311,15 +296,6 @@ class EmpleadoController extends Controller
         $informacionEmergencia = $empleado->ContactoEmergencia;
         $informacionEmergencia->fill($request->all());
         $informacionEmergencia->save();
-        // $empleado->contactoEmergencia()->update([
-        //     // Campos de ContactoEmergencia para actualizar
-        //     'nombre_contacto1' => $request->input('nombre_contacto1'),
-        //     'telefono_contacto1' => $request->input('telefono_contacto1'),
-        //     'direccion_contacto1' => $request->input('direccion_contacto1'),
-        //     'nombre_contacto2' => $request->input('nombre_contacto2'),
-        //     'telefono_contacto2' => $request->input('telefono_contacto2'),
-        //     'direccion_contacto2' => $request->input('direccion_contacto2'),
-        // ]);
     }
 
     private function updateInformacionLarabol(Empleado $empleado, Request $request)
@@ -327,14 +303,6 @@ class EmpleadoController extends Controller
         $informacionLarabol = $empleado->informacionLarabol;
         $informacionLarabol->fill($request->all());
         $informacionLarabol->save();
-        // $empleado->informacionLarabol()->update([
-        //     // Campos de InformacionLarabol para actualizar
-        //     'fecha_contrato' => $request->input('fecha_contrato'),
-        //     'finalizacion_contrato' => $request->input('finalizacion_contrato'),
-        //     'tipo_contrato' => $request->input('tipo_contrato'),
-        //     'tipo_salario' => $request->input('tipo_salario'),
-        //     'salario' => $request->input('salario'),
-        // ]);
     }
 
     private function updateDocumentoRequirido(Empleado $empleado, Request $request)
@@ -342,11 +310,6 @@ class EmpleadoController extends Controller
         $informacionDocumento = $empleado->documentoRequirido;
         $informacionDocumento->fill($request->all());
         $informacionDocumento->save();
-
-        // $empleado->documentoRequirido()->update([
-        //     'documentos' => $request->input('documentos'),
-        //     'documentos_id' => $request->input('documentos_id'),
-        // ]);
     }
 
     private function updateHistorialEmpresaAnterior(Empleado $empleado, Request $request)
@@ -354,14 +317,6 @@ class EmpleadoController extends Controller
         $informacionHistorial = $empleado->historialEmpresaAnterior;
         $informacionHistorial->fill($request->all());
         $informacionHistorial->save();
-        // $empleado->historialEmpresaAnterior()->update([
-        //     // Campos de HistorialEmpresaAnterior para actualizar
-        //     'nombre_empresa_anterior' => $request->input('nombre_empresa_anterior'),
-        //     'cargo_anterior' => $request->input('cargo_anterior'),
-        //     'fecha_inicio_trabajo_anterior' => $request->input('fecha_inicio_trabajo_anterior'),
-        //     'fecha_salida_trabajo_anterior' => $request->input('fecha_salida_trabajo_anterior'),
-        //     'motivo_salida' => $request->input('motivo_salida'),
-        // ]);
     }
 
     /**
@@ -381,11 +336,29 @@ class EmpleadoController extends Controller
             ], 404);
         }
 
+        // $usuario = User::where('codigo_empleado', $empleado->codigo_empleado)->first();
+        // if ($usuario) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'No se puede eliminar el empleado porque hay un usuario asociado a su código'
+        //     ], 400);
+        // }
+
+        $usuario = User::where('empleado_id', $empleado->id)->first();
+        if ($usuario) {
+            $usuario->estado = "Inactivo";
+            $usuario->codigo_empleado = null;
+            $usuario->empleado_id = null;
+            // $usuario->foto = null;
+            // $usuario->foto_id = null;
+            $usuario->save();
+        }
         $empleado->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Empleado eliminado exitosamente'
+            'message' => 'Empleado eliminado exitosamente',
+            'data' => $usuario
         ]);
     }
 
@@ -421,40 +394,4 @@ class EmpleadoController extends Controller
 
         return $edad;
     }
-
-    // /**
-    //  * Generar una foto automáticamente con la letra del nombre y apellido.
-    //  *
-    //  * @param  string  $nombre
-    //  * @param  string  $apellidos
-    //  * @return string
-    //  */
-    // private function generarFotoAutomatica($nombre, $apellidos)
-    // {
-    //     $letraNombre = strtoupper(substr($nombre, 0, 1));
-    //     $letraApellido = strtoupper(substr($apellidos, 0, 1));
-
-    //     $fileName = $letraNombre . $letraApellido . '.jpg';
-    //     $path = public_path('storage/empleados/' . $fileName);
-
-    //     // Generar una imagen con la letra del nombre y apellido
-    //     $image = Image::canvas(200, 200, '#ccc');
-    //     $image->text($letraNombre, 100, 100, function ($font) {
-    //         $font->file(public_path('fonts/arial.ttf'));
-    //         $font->size(80);
-    //         $font->color('#ffffff');
-    //         $font->align('center');
-    //         $font->valign('middle');
-    //     });
-    //     $image->text($letraApellido, 100, 150, function ($font) {
-    //         $font->file(public_path('fonts/arial.ttf'));
-    //         $font->size(80);
-    //         $font->color('#ffffff');
-    //         $font->align('center');
-    //         $font->valign('middle');
-    //     });
-    //     $image->save($path, 90);
-
-    //     return '/storage/empleados/' . $fileName;
-    // }
 }

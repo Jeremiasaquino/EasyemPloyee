@@ -111,18 +111,21 @@ class DepartamentoController extends Controller
 {
     $departamento = Departamento::findOrFail($id);
     $deleted = $departamento->delete();
-
+    echo($deleted);
+    
     if (!$deleted) {
         // El departamento no fue eliminado
         return response()->json([
             'success' => false,
             'message' => 'No se puede eliminar el departamento porque hay empleados asignados a él.',
-        ]);
+        ], 404);
     }
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Departamento eliminado exitosamente.',
-    ]);
+    else{
+        return response()->json([
+            'success' => true,
+            'message' => 'Departamento eliminado exitosamente.',
+        ],201);
+    }
+    
 }
 }

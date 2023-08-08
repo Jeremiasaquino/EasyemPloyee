@@ -21,6 +21,7 @@ class Asistencia extends Model
         'hora_descanso_inicio',
         'hora_descanso_fin',
         'hora_extra',
+        'horas_trabajas',
         'estado',
         'descripcion'
     ];
@@ -37,7 +38,7 @@ class Asistencia extends Model
 
     // Atributos virtuales que se agregarán automáticamente a las instancias del modelo
     protected $appends = [
-        'horas_trabajadas', // Nuevo atributo virtual
+        // 'horas_trabajadas', // Nuevo atributo virtual
 
     ];
 
@@ -48,43 +49,37 @@ class Asistencia extends Model
     }
 
     // Accesor para obtener el día de la semana a partir de la fecha
-    public function getDiaSemanaAttribute()
-    {
-        // Verificamos que la fecha sea una instancia de Carbon
-        if ($this->fecha instanceof \Carbon\Carbon) {
-            // Utilizamos el método format() de Carbon para obtener el día de la semana en formato texto
-            // l: El día de la semana en su representación textual completa (por ejemplo, "lunes")
-            // return $this->fecha->format('l');
-            $diaSemana = $this->fecha->isoFormat('dddd');
-            return ucfirst($diaSemana);
-        }
-
-
-        // Si la fecha no es una instancia de Carbon, retornamos un valor por defecto o null
-        return null;
-    }
+    // public function getDiaSemanaAttribute()
+    // {
+        
+    // // Creamos una instancia de Carbon a partir de la fecha recibida
+    //     $fechaCarbon = \Carbon\Carbon::createFromFormat('Y-m-d', $this->fecha);
+    
+    //     $diaSemana = $fechaCarbon->isoFormat('dddd');
+    //     return ucfirst($diaSemana);
+    // }
 
     // Accesor para calcular las horas trabajadas (hora_salida - hora_entrada)
-    public function getHorasTrabajadasAttribute()
-    {
-        // Verificamos que los valores de hora_entrada y hora_salida sean instancias de Carbon\Carbon
-        if ($this->hora_entrada instanceof \Carbon\Carbon && $this->hora_salida instanceof \Carbon\Carbon) {
-            return $this->hora_entrada->diffInHours($this->hora_salida);
-        }
+    // public function getHorasTrabajadasAttribute()
+    // {
+    //     // Verificamos que los valores de hora_entrada y hora_salida sean instancias de Carbon\Carbon
+    //     if ($this->hora_entrada instanceof \Carbon\Carbon && $this->hora_salida instanceof \Carbon\Carbon) {
+    //         return $this->hora_entrada->diffInHours($this->hora_salida);
+    //     }
 
-        // Si falta alguna de las horas o no son instancias de Carbon, retornamos 0
-        return 0;
-    }
-    // Accesor para calcular las horas extra (horas_trabajadas - horas_normales)
-    public function getHoraExtraAttribute()
-    {
-        $horasTrabajadas = $this->horas_trabajadas;
-        $horasNormales = 8; // Ejemplo: 8 horas diarias como límite de horas normales
+    //     // Si falta alguna de las horas o no son instancias de Carbon, retornamos 0
+    //     return 0;
+    // }
+//     // Accesor para calcular las horas extra (horas_trabajadas - horas_normales)
+//     public function getHoraExtraAttribute()
+//     {
+//         $horasTrabajadas = $this->horas_trabajadas;
+//         $horasNormales = 8; // Ejemplo: 8 horas diarias como límite de horas normales
 
-        if ($horasTrabajadas > $horasNormales) {
-            return $horasTrabajadas - $horasNormales;
-        }
+//         if ($horasTrabajadas > $horasNormales) {
+//             return $horasTrabajadas - $horasNormales;
+//         }
 
-        return 0;
-    }
+//         return 0;
+//     }
 }
