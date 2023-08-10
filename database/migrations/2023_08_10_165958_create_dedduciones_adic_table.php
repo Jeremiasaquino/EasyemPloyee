@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('preguntas', function (Blueprint $table) {
+        Schema::create('dedduciones_adic', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('evaluacion_id');
-            $table->text('texto');
-            $table->string('factor'); // Por ejemplo: "Asistencia y Puntualidad"
+            $table->unsignedBigInteger('empleado_id');
+            $table->string('descripcion');
+            $table->decimal('monto', 10, 2);
             $table->timestamps();
 
-            $table->foreign('evaluacion_id')->references('id')->on('evaluaciones')->onDelete('cascade');
+            // Foreign key constraint for empleado_id
+            $table->foreign('empleado_id')->references('id')->on('empleados')->onDelete('cascade');
         });
     }
 
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('preguntas');
+        Schema::dropIfExists('dedduciones_adic');
     }
 };

@@ -20,8 +20,7 @@ return new class extends Migration
             $table->date('fecha_fin');
             $table->timestamps();
 
-            $table->foreign('empleado_id')->references('id')->on('empleados');
-            $table->timestamps();
+            $table->foreign('empleado_id')->references('id')->on('empleados')->onDelete('cascade');
         });
     }
 

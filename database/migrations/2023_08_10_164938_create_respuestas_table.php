@@ -19,8 +19,8 @@ return new class extends Migration
             $table->text('comentario')->nullable();
             $table->timestamps();
 
-            $table->foreign('evaluacion_id')->references('id')->on('evaluaciones');
-            $table->foreign('pregunta_id')->references('id')->on('preguntas');
+            $table->foreign('evaluacion_id')->references('id')->on('evaluaciones')->onDelete('cascade');
+            $table->foreign('pregunta_id')->references('id')->on('preguntas')->onDelete('cascade');
         });
     }
 
