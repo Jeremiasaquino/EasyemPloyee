@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('prestamos', function (Blueprint $table) {
             $table->id();
-            $table->date('fecha');
-            $table->decimal('monto', 10, 2);
             $table->unsignedBigInteger('empleado_id');
+            $table->decimal('monto', 10, 2); // Monto del préstamo por adelantado
+            $table->date('fecha_prestamo'); // Fecha del préstamo
+            $table->enum('estado', ['Activo', 'Pagado']); // Estado del préstamo (Activo, Pagado)
             $table->timestamps();
 
             // Definir la relación con la tabla de empleados
