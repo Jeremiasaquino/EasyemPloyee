@@ -319,6 +319,16 @@ class EmpleadoController extends Controller
         $informacionHistorial->save();
     }
 
+
+
+    
+        // $usuario = User::where('codigo_empleado', $empleado->codigo_empleado)->first();
+        // if ($usuario) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'No se puede eliminar el empleado porque hay un usuario asociado a su código'
+        //     ], 400);
+        // }
     /**
      * Eliminar un empleado existente.
      *
@@ -336,29 +346,29 @@ class EmpleadoController extends Controller
             ], 404);
         }
 
-        // $usuario = User::where('codigo_empleado', $empleado->codigo_empleado)->first();
-        // if ($usuario) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => 'No se puede eliminar el empleado porque hay un usuario asociado a su código'
-        //     ], 400);
-        // }
-
+        $foto_id_original = null;
+        $id_user = null;
         $usuario = User::where('empleado_id', $empleado->id)->first();
         if ($usuario) {
-            $usuario->estado = "Inactivo";
-            $usuario->codigo_empleado = null;
-            $usuario->empleado_id = null;
+            // $usuario->estado = "Inactivo";
+            // $usuario->codigo_empleado = null;
+            // $usuario->empleado_id = null;
             // $usuario->foto = null;
+            // $foto_id_original = $usuario->foto_id;
             // $usuario->foto_id = null;
-            $usuario->save();
+            // $usuario->save();
+            $foto_id_original = $usuario->foto_id;
+            $id_user = $usuario->id;
+            $usuario->delete();
         }
         $empleado->delete();
 
         return response()->json([
             'success' => true,
             'message' => 'Empleado eliminado exitosamente',
-            'data' => $usuario
+            // 'data' => $usuario,
+            'foto_id_original' => $foto_id_original ,
+            'id_user' => $id_user 
         ]);
     }
 

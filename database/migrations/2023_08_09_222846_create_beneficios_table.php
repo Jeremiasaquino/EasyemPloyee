@@ -11,18 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('informacion_laboral', function (Blueprint $table) {
+        Schema::create('beneficios', function (Blueprint $table) {
             $table->id();
+            $table->string('beneficio');
+            $table->decimal('monto', 10, 2)->default(0.0);
             $table->unsignedBigInteger('empleado_id');
-           // Agrega las columnas específicas para informacion_larabol
-            $table->date('fecha_contrato');
-            $table->date('finalizacion_contrato')->nullable();
-            $table->string('tipo_contrato');
-            $table->string('tipo_salario');
-            $table->integer('salario');
             $table->timestamps();
 
-            // Foreign key constraint
+            // Definir la relación con la tabla de empleados
             $table->foreign('empleado_id')->references('id')->on('empleados')->onDelete('cascade');
         });
     }
@@ -32,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('informacion_laboral');
+        Schema::dropIfExists('beneficios');
     }
 };

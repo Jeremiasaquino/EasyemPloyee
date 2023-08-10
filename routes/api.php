@@ -10,6 +10,9 @@ use App\Http\Controllers\CargoController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\TokenController;
 use App\Http\Controllers\AsistenciaController;
+use App\Http\Controllers\BeneficiosController;
+use App\Http\Controllers\DeduccionesController;
+use App\Http\Controllers\PrestamosController;
 
 
 
@@ -131,6 +134,33 @@ Route::prefix('asistencia')->group(function () {
     // Ruta para obtener la asistencia de un empleado en una fecha específica
     // Route::get('/{empleadoId}/{fecha}', [AsistenciaController::class, 'show']);
     Route::get('/{fecha}', [AsistenciaController::class, 'asistenciaPasadas']);
+});
+
+// Rutas para obtener y gestionar deducciones de un empleado específico
+Route::prefix('deducciones')->group(function () {
+    Route::get('/', [DeduccionesController::class, 'index']);
+    Route::get('/{id}', [DeduccionesController::class, 'show']);
+    Route::post('/', [DeduccionesController::class, 'store']);
+    Route::put('/{id}', [DeduccionesController::class, 'update']);
+    Route::delete('/{id}', [DeduccionesController::class, 'destroy']);
+});
+
+// Rutas para obtener y gestionar beneficios de un empleado específico
+Route::prefix('beneficios')->group(function () {
+    Route::get('/', [BeneficiosController::class, 'index']);
+    Route::get('/{id}', [BeneficiosController::class, 'show']);
+    Route::post('/', [BeneficiosController::class, 'store']);
+    Route::put('/{id}', [BeneficiosController::class, 'update']);
+    Route::delete('/{id}', [BeneficiosController::class, 'destroy']);
+});
+
+// Rutas para obtener y gestionar prestamos de un empleado específico
+Route::prefix('prestamos')->group(function () {
+    Route::get('/', [PrestamosController::class, 'index']);
+    Route::get('/{id}', [PrestamosController::class, 'show']);
+    Route::post('/', [PrestamosController::class, 'store']);
+    Route::put('/{id}', [PrestamosController::class, 'update']);
+    Route::delete('/{id}', [PrestamosController::class, 'destroy']);
 });
 
 // });

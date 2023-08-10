@@ -12,53 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AsistenciaController extends Controller
 {
-    // Función index para obtener los datos solicitados
-    // public function index()
-    // {
-    //     try {
-    //         // Obtener la fecha actual
-    //         $currentDate = now()->format('Y-m-d');
-
-    //         // Obtenemos las asistencias con la relación empleado para el día actual
-    //         $asistencias = Asistencia::with('empleado')
-    //             ->whereDate('fecha', $currentDate)
-    //             ->get();
-    //         // Verificar si hay asistencias encontradas
-    //         if ($asistencias->isEmpty()) {
-    //             // Respuesta con código 204 (sin contenido) indicando que no hay asistencia registrada para el día actual
-    //             return response()->json(null, Response::HTTP_NO_CONTENT);
-    //         }
-
-    //         // Formatear los datos de asistencia para la respuesta
-    //         $data = [];
-    //         foreach ($asistencias as $asistencia) {
-    //             // Convertimos las horas trabajadas a formato de 8 horas y 0 minutos
-    //             $horasTrabajadas = sprintf('%d:%02d', floor($asistencia->horas_trabajadas), ($asistencia->horas_trabajadas - floor($asistencia->horas_trabajadas)) * 60);
-
-    //             $data[]  = [
-    //                 'id' => $asistencia->id,
-    //                 'fecha' => $asistencia->fecha = Carbon::parse($asistencia->fecha),
-    //                 'dia_semana' => $asistencia->dia_semana,
-    //                 'descripcion' => $asistencia->descripcion,
-    //                 'departamento' => $asistencia->empleado->departamento->departamento,
-    //                 'codigo_empleado' => $asistencia->empleado->codigo_empleado,
-    //                 'nombre' => $asistencia->empleado->getNombreCompletoAttribute(), // Asumiendo que el campo se llama 'nombre'
-    //                 'hora_entrada' => $asistencia->hora_entrada,  // Cambiamos el formato de la hora a 'H:i A'
-    //                 'hora_salida' => $asistencia->hora_salida,  // Cambiamos el formato de la hora a 'H:i A'
-    //                 'estado' => $asistencia->estado,
-    //                 'hora_trabajada' => $horasTrabajadas, // Mostramos las horas trabajadas en formato de 8 horas y 0 minutos
-    //             ];
-    //         }
-
-    //         // Respuesta con código 200 (éxito) y los datos en formato JSON
-    //         return response()->json(['data' => $data], Response::HTTP_OK);
-    //     } catch (\Exception $e) {
-    //         echo ($e);
-    //         // En caso de error, respondemos con un mensaje de error y un código de error 500 (Error interno del servidor)
-    //         return response()->json(['message' => 'Ha ocurrido un error al obtener las asistencias'], Response::HTTP_INTERNAL_SERVER_ERROR);
-    //     }
-    // }
-
+    
     public function index()
 {
     try {
@@ -71,10 +25,10 @@ class AsistenciaController extends Controller
             ->get();
             
         // Verificar si hay asistencias encontradas
-        if ($asistencias->isEmpty()) {
-            // Respuesta con código 204 (sin contenido) indicando que no hay asistencia registrada para el día actual
-            return response()->json(null, Response::HTTP_NO_CONTENT);
-        }
+        // if ($asistencias->isEmpty()) {
+        //     // Respuesta con código 204 (sin contenido) indicando que no hay asistencia registrada para el día actual
+        //     return response()->json(null, Response::HTTP_NO_CONTENT);
+        // }
 
         // Formatear los datos de asistencia para la respuesta
         $data = [];
