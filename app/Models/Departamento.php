@@ -12,13 +12,6 @@ class Departamento extends Model
 
     protected $table = 'departamento';
 
-    protected $fillable = [
-      //  'user_id',
-        'name',
-    ];
+    protected $fillable = [ 'name', ];
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 }

@@ -13,9 +13,14 @@ class DeduccionesAdic extends Model
     protected $table = 'dedduciones_adic';
 
     protected $fillable = [
-        'descripcion',
-        'monto',
         'empleado_id',
+        'nombre',
+        'monto',
+        'tipo_deduccion',
+        'estado',
+        'fecha_inicio',
+        'fecha_final',
+        
     ];
 
     // Relación con el modelo "Empleado"

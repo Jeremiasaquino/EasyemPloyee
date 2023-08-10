@@ -32,17 +32,15 @@ class DepartamentoController extends Controller
     {
         $request->validate([
             'name' => 'required|unique:departamento|string|max:255',
-            //'user_id' => 'nullable|exists:users,id',
+            
         ], [
             'name.required' => 'El campo Nombre es obligatorio.',
             'name.unique' => 'Ya existe un departamento con este nombre.',
-          //  'user_id.required' => 'El campo user_id es obligatorio.',
-            //'user_id.exists' => 'El user_id proporcionado no existe.',
+          
         ]);
 
         $departamento = Departamento::create([
             'name' => $request->name,
-            //'user_id' => $request->user_id,
         ]);
 
         return response()->json([
@@ -81,17 +79,16 @@ class DepartamentoController extends Controller
 
         $request->validate([
             'name' => 'required|unique:departamento,name,' . $id . '|string|max:255',
-          //  'user_id' => 'nullable|exists:users,id',
+         
         ], [
             'name.required' => 'El campo Nombre es obligatorio.',
             'name.unique' => 'Ya existe un departamento con este nombre.',
-         //   'user_id.required' => 'El campo user_id es obligatorio.',
-           // 'user_id.exists' => 'El user_id proporcionado no existe.',
+         
         ]);
 
         $departamento->update([
             'name' => $request->name,
-            //'user_id' => $request->user_id,
+           
         ]);
 
         return response()->json([

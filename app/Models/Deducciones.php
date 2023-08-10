@@ -13,10 +13,11 @@ class Deducciones extends Model
     protected $table = 'deducciones';
 
     protected $fillable = [
-        'descripcion',
-        'porcentaje_empleado',
-        'monto',
         'empleado_id',
+        'nombre',
+        'monto',
+        'tipo_deduccion',
+        'estado',
     ];
 
     // Relación con el modelo "Empleado"

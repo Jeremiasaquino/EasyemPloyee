@@ -11,6 +11,8 @@ class Respuesta extends Model
 {
     use HasFactory;
 
+    protected $table = 'respuestas';
+
     protected $fillable = [
         'evaluacion_id',
         'pregunta_id',

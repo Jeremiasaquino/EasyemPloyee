@@ -10,8 +10,6 @@ class InformacionBancaria extends Model
 {
     use HasFactory;
 
-    use HasFactory;
-
     protected $table = 'informacion_bancaria';
 
     protected $fillable = [

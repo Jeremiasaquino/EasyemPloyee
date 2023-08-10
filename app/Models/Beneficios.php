@@ -14,8 +14,11 @@ class Beneficios extends Model
 
     protected $fillable = [
         'empleado_id',
-        'descripcion',
+        'nombre',
         'monto',
+        'tipo_beneficio',
+        'estado',
+
     ];
 
 
