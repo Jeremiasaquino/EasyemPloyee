@@ -34,34 +34,49 @@ class NominaController extends Controller
             'fecha_nomina' => 'required|date',
             'empleado_id' => 'required|exists:empleados,id',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
         }
-
-        // Obtener datos del empleado
+    
         $empleado = Empleado::find($request->empleado_id);
-
+    
         if (!$empleado) {
             return response()->json([
                 'success' => false,
                 'message' => 'Empleado no encontrado.',
             ], 404);
         }
-
-        // Combinar datos del empleado con los valores proporcionados
+    
+        // Calcular total de beneficios
+        $totalBeneficios = $empleado->Beneficios->sum('amount');
+    
+        // Calcular total de deducciones
+        $totalDeducciones = $empleado->Deducciones->sum('amount');
+    
+        // Calcular total de préstamos por adelantado
+        $totalPrestamosAdelanto = $empleado->Prestamos->sum('amount');
+    
+        // Calcular salario neto
+        $salarioNeto = $empleado->salario + $request->hora_extra + $totalBeneficios - $totalDeducciones - $totalPrestamosAdelanto;
+    
+        // Calcular método de pago y cuenta bancaria
+        $metodoPago = $empleado->cuenta_bancaria ? 'Transferencia' : 'Cheque';
+        $cuentaBancaria = $empleado->cuenta_bancaria;
+    
         $datosNominas = [
             'empleado_id' => $empleado->id,
             'salario' => $empleado->salario,
             'hora_extra' => $request->hora_extra,
-            'total_beneficios' => $request->total_beneficios,
-            'total_deducciones' => $request->total_deducciones,
-            'total_prestamos_adelanto' => $request->total_prestamos_adelanto,
-            'salario_neto' => $empleado->salario + $request->hora_extra + $request->total_beneficios - $request->total_deducciones - $request->total_prestamos_adelanto,
-            'metodo_pago' => $empleado->cuenta_bancaria ? 'Transferencia' : 'Cheque',
-            'cuenta_bancaria' => $empleado->cuenta_bancaria,
+            'total_beneficios' => $totalBeneficios,
+            'total_deducciones' => $totalDeducciones,
+            'total_prestamos_adelanto' => $totalPrestamosAdelanto,
+            'salario_neto' => $salarioNeto,
+            'metodo_pago' => $metodoPago,
+            'cuenta_bancaria' => $cuentaBancaria,
+            'fecha_nomina' => $request->fecha_nomina, // Asegúrate de agregar la fecha
         ];
-
+    
         $nomina = Nomina::create($datosNominas);
         return response()->json(['success' => true, 'data' => $nomina]);
     }
