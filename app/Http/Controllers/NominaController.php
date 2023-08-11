@@ -33,6 +33,7 @@ class NominaController extends Controller
     // Crear una nueva nómina
     public function store(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
             'fecha_nomina' => 'required|date',
             'empleado_id' => 'required|exists:empleados,id',
@@ -42,13 +43,14 @@ class NominaController extends Controller
             'total_prestamos_adelanto' => 'numeric',
             'cuenta_bancaria' => 'nullable|string',
             'salario_neto' => 'numeric',
+
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
         }
 
-        $empleado = Empleado::with(['Beneficios', 'Deducciones', 'Prestamos'])->find($request->empleado_id);
+        $empleado = Empleado::with(['Beneficios', 'Deducciones', 'Prestamos', 'informacionLarabol'])->find($request->empleado_id);
 
         if (!$empleado) {
             return response()->json([
@@ -56,18 +58,18 @@ class NominaController extends Controller
                 'message' => 'Empleado no encontrado.',
             ], 404);
         }
-
+        $salario = $empleado->informacionLarabol->salario;
         // Calcular total de beneficios
-        $totalBeneficios = $empleado->Beneficios->isEmpty() ? 0 : $empleado->Beneficios->sum('amount');
+        $totalBeneficios = $empleado->Beneficios->isEmpty() ? 0 : $empleado->Beneficios->sum('monto');
 
         // Calcular total de deducciones
-        $totalDeducciones = $empleado->Deducciones->isEmpty() ? 0 : $empleado->Deducciones->sum('amount');
+        $totalDeducciones = $empleado->Deducciones->isEmpty() ? 0 : $empleado->Deducciones->sum('monto');
 
         // Calcular total de préstamos por adelantado
-        $totalPrestamosAdelanto = $empleado->Prestamos->isEmpty() ? 0 : $empleado->Prestamos->sum('amount');
+        $totalPrestamosAdelanto = $empleado->Prestamos->isEmpty() ? 0 : $empleado->Prestamos->sum('monto');
 
         // Calcular salario neto
-        $salarioNeto = $empleado->salario + $request->hora_extra + $totalBeneficios - $totalDeducciones - $totalPrestamosAdelanto;
+        $salarioNeto = $salario + $request->hora_extra + $totalBeneficios - $totalDeducciones - $totalPrestamosAdelanto;
 
         // Calcular método de pago y cuenta bancaria
         $metodoPago = $empleado->cuenta_bancaria ? 'Transferencia' : 'Cheque';
@@ -75,7 +77,7 @@ class NominaController extends Controller
 
         $datosNomina = [
             'empleado_id' => $empleado->id,
-            'salario' => $empleado->salario,
+            'salario' => $salario,
             'hora_extra' => $request->hora_extra,
             'total_beneficios' => $totalBeneficios,
             'total_deducciones' => $totalDeducciones,

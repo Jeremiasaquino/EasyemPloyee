@@ -15,7 +15,7 @@ class Nomina extends Model
     protected $fillable = [
         'fecha_nomina', 'empleado_id', 'salario', 'hora_extra', 'total_beneficios',
         'total_deducciones', 'total_prestamos_adelanto', 'salario_neto',
-        'metodo_pago', 'cuenta_bancaria'
+        'metodo_pago', 'cuenta_bancaria' ,
     ];
 
     // Relación con el modelo Empleado
