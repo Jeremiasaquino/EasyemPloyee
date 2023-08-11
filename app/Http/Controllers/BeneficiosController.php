@@ -22,9 +22,15 @@ class BeneficiosController extends Controller
             ]);
         }
 
+        $formattedBeneficios = $Beneficios->map(function ($beneficio) {
+            $monto = 'RD$' . number_format($beneficio->monto, 2, '.', '');
+            $beneficio->monto = $monto;
+            return $beneficio;
+        });
+
         return response()->json([
             'success' => true,
-            'data' => $Beneficios,
+            'data' => $formattedBeneficios,
         ]);
     }
 
@@ -35,21 +41,18 @@ class BeneficiosController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'empleado_id' => 'required|exists:empleados,id',
-            'descripcion' => 'required|string|max:255',
-            'monto' => 'required|numeric|min:0',
+            'nombre' => 'required|string|max:255',
+            'monto' => 'required|numeric',
+            'tipo_beneficio' => 'required||string|max:255',
+            'estado' => 'required|in:Activo,Inactivo',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'msg' => 'Error en los datos enviados', 'errors' => $validator->errors()], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
         }
 
-        $Beneficios = Beneficios::create([
-            'empleado_id' => $request->input('empleado_id'),
-            'descripcion' => $request->input('descripcion'),
-            'monto' => $request->input('monto'),
-        ]);
-
-        return response()->json(['success' => true, 'msg' => 'Beneficios creado con éxito', 'Beneficios' => $Beneficios], 201);
+        $Beneficios = Beneficios::create($request->all());
+        return response()->json(['success' => true, 'data' => $Beneficios]);
     }
 
     /**
@@ -57,19 +60,19 @@ class BeneficiosController extends Controller
      */
     public function show(string $id)
     {
-        $Beneficios = Beneficios::find($id);
+        $beneficio = Beneficios::find($id);
 
-        if (!$Beneficios) {
+        if (!$beneficio) {
             return response()->json([
                 'success' => false,
-                'message' => 'Beneficios no encontrado',
+                'message' => 'Beneficio no encontrado.',
             ], 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $Beneficios,
-        ]);
+        $montoFormateado = 'RD$' . number_format($beneficio->monto, 2, '.', '');
+        $beneficio->monto = $montoFormateado;
+
+        return response()->json(['success' => true, 'data' => $beneficio]);
     }
 
     /**
@@ -77,34 +80,30 @@ class BeneficiosController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Validar los datos recibidos del formulario
-        $request->validate([
-            'empleado_id' => 'required|exists:empleados,id',
-            'descripcion' => 'required|string|max:255',
-            'monto' => 'required|numeric|min:0',
-        ]);
-
         $beneficio = Beneficios::find($id);
 
         if (!$beneficio) {
             return response()->json([
                 'success' => false,
-                'message' => 'Registro no encontrado.',
-            ]);
+                'message' => 'Beneficio no encontrado.',
+            ], 404);
         }
 
-        // Actualizar los campos del modelo con los datos del formulario
-        $beneficio->update([
-            'empleado_id' => $request->input('empleado_id'),
-            'descripcion' => $request->input('descripcion'),
-            'monto' => $request->input('monto'),
+        $validator = Validator::make($request->all(), [
+            'empleado_id' => 'exists:empleados,id',
+            'nombre' => 'string|max:255',
+            'monto' => 'numeric',
+            'tipo_beneficio' => 'string|max:255',
+            'estado' => 'in:Activo,Inactivo',
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Registro actualizado exitosamente.',
-            'data' => $beneficio,
-        ]);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
+        }
+
+        $beneficio->update($request->all());
+
+        return response()->json(['success' => true, 'data' => $beneficio]);
     }
 
     /**
@@ -117,15 +116,15 @@ class BeneficiosController extends Controller
         if (!$beneficio) {
             return response()->json([
                 'success' => false,
-                'message' => 'Registro no encontrado.',
-            ]);
+                'message' => 'Beneficio no encontrado.',
+            ], 404);
         }
 
         $beneficio->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Registro eliminado exitosamente.',
+            'message' => 'Beneficio eliminado exitosamente.',
         ]);
     }
 }
