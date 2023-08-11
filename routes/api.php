@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TssController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CargoController;
 use App\Http\Controllers\NominaController;
@@ -141,6 +142,15 @@ Route::prefix('empresas')->group(function () {
     Route::get('/{id}', [EmpresaController::class, 'show']);     // Mostrar los detalles de una empresa específica
     Route::put('/{id}', [EmpresaController::class, 'update']);   // Actualizar una empresa existente
     Route::delete('/{id}', [EmpresaController::class, 'destroy']); // Eliminar una empresa específica
+});
+
+// Rutas para obtener y gestionar beneficios de un empleado específico
+Route::prefix('tss')->group(function () {
+    Route::get('/', [TssController::class, 'index']);
+    Route::get('/{id}', [TssController::class, 'show']);
+    Route::post('/', [TssController::class, 'store']);
+    Route::put('/{id}', [TssController::class, 'update']);
+    Route::delete('/{id}', [TssController::class, 'destroy']);
 });
 
 // Rutas para obtener y gestionar deducciones de un empleado específico
