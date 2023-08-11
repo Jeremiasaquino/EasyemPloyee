@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CargoController;
+use App\Http\Controllers\NominaController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\EmpleadoController;
@@ -168,6 +169,16 @@ Route::prefix('prestamos')->group(function () {
     Route::put('/{id}', [PrestamosController::class, 'update']);
     Route::delete('/{id}', [PrestamosController::class, 'destroy']);
 });
+
+// Rutas relacionadas con los asistencia
+Route::prefix('nomina')->group(function () {
+    // Obtener todos las asistencia
+    Route::get('/', [NominaController::class, 'index']);
+    // Crear un nuevo horario
+    Route::post('/', [NominaController::class, 'store']);
+   
+});
+
         
 
 //});
