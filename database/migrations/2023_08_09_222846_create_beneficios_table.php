@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('beneficios', function (Blueprint $table) {
             $table->id();
-            $table->string('beneficio');
-            $table->decimal('monto', 10, 2)->default(0.0);
             $table->unsignedBigInteger('empleado_id');
+            $table->string('beneficio'); // Nombre del beneficio (ejemplo: "Seguro de Salud")
+            $table->decimal('monto', 10, 2); // Monto del beneficio
+            $table->string('tipo_beneficio'); // Tipo de beneficio
+            $table->enum('estado', ['Activo', 'Inactivo']); // Estado del beneficio (Activo, Inactivo)
             $table->timestamps();
 
             // Definir la relación con la tabla de empleados

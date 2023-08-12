@@ -105,7 +105,13 @@ public function asistenciaPasadas($fecha)
 }
 
 
-
+ /**
+ * Mostrar las asistencias pasadas de un empleado.
+ *
+ * @param  int  $empleadoId
+ * @param  string  $fecha
+ * @return \Illuminate\Http\JsonResponse
+ */
     public function asistenciaToday($empleadoId)
 {
     try {

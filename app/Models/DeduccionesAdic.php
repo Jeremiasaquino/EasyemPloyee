@@ -6,21 +6,22 @@ use App\Models\Empleado;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Beneficios extends Model
+class DeduccionesAdic extends Model
 {
     use HasFactory;
 
-    protected $table = 'beneficios';
+    protected $table = 'dedduciones_adic';
 
     protected $fillable = [
         'empleado_id',
-        'beneficio',
+        'nombre',
         'monto',
-        'tipo_beneficio',
+        'tipo_deduccion',
         'estado',
-
+        'fecha_inicio',
+        'fecha_final',
+        
     ];
-
 
     // Relación con el modelo "Empleado"
     public function empleado()

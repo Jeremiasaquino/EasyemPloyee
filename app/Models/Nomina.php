@@ -6,23 +6,19 @@ use App\Models\Empleado;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Beneficios extends Model
+class Nomina extends Model
 {
     use HasFactory;
 
-    protected $table = 'beneficios';
+    protected $table = 'nomina';
 
     protected $fillable = [
-        'empleado_id',
-        'beneficio',
-        'monto',
-        'tipo_beneficio',
-        'estado',
-
+        'fecha_nomina', 'empleado_id', 'salario', 'hora_extra', 'total_beneficios',
+        'total_deducciones', 'total_prestamos_adelanto', 'salario_neto',
+        'metodo_pago', 'cuenta_bancaria'
     ];
 
-
-    // Relación con el modelo "Empleado"
+    // Relación con el modelo Empleado
     public function empleado()
     {
         return $this->belongsTo(Empleado::class, 'empleado_id');

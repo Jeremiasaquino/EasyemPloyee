@@ -12,9 +12,11 @@ class Prestamos extends Model
     protected $table = 'prestamos';
 
     protected $fillable = [
-        'fecha',
-        'monto',
         'empleado_id',
+        'fecha_prestamo',
+        'monto',
+        'estado',
+        
     ];
 
     // Relación con el modelo "Empleado"

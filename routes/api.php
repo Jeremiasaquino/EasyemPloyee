@@ -13,6 +13,8 @@ use App\Http\Controllers\AsistenciaController;
 use App\Http\Controllers\BeneficiosController;
 use App\Http\Controllers\DeduccionesController;
 use App\Http\Controllers\PrestamosController;
+use App\Http\Controllers\TssController;
+use App\Http\Controllers\NominaController;
 
 
 
@@ -161,6 +163,28 @@ Route::prefix('prestamos')->group(function () {
     Route::post('/', [PrestamosController::class, 'store']);
     Route::put('/{id}', [PrestamosController::class, 'update']);
     Route::delete('/{id}', [PrestamosController::class, 'destroy']);
+});
+
+// Rutas para obtener y gestionar beneficios de un empleado específico
+Route::prefix('tss')->group(function () {
+    Route::get('/', [TssController::class, 'index']);
+    Route::get('/{id}', [TssController::class, 'show']);
+    Route::post('/', [TssController::class, 'store']);
+    Route::put('/{id}', [TssController::class, 'update']);
+    Route::delete('/{id}', [TssController::class, 'destroy']);
+});
+
+Route::prefix('nomina')->group(function () {
+    // Obtener todos las asistencia
+    Route::get('/', [NominaController::class, 'index']);
+    // Buscar nomina por fecha
+    Route::get('/nomina_pasada/{fecha}', [NominaController::class, 'nominasPasadas']);
+
+    Route::get('/nomina_hoy', [NominaController::class, 'nominasToday']);
+    // Obtener las nominas de hoy
+    // Crear un nuevo horario
+    Route::post('/', [NominaController::class, 'store']);
+   
 });
 
 // });

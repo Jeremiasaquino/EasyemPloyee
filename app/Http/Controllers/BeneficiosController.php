@@ -13,29 +13,29 @@ class BeneficiosController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-{
-    $beneficios = Beneficios::all();
+    {
+        $Beneficios = Beneficios::all();
 
-    // Agregar atributos dinámicos a cada objeto de beneficios
-    $beneficios = $beneficios->map(function ($beneficio) {
-        $empleado = Empleado::findOrFail($beneficio->empleado_id);
-        $beneficio->setAttribute('codigo_empleado', $empleado->codigo_empleado);
-        $beneficio->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
-        return $beneficio;
-    });
+        if ($Beneficios->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay registros en la tabla.',
+            ], 404);
+        }
 
-    if ($beneficios->isEmpty()) {
+        $formattedBeneficios = $Beneficios->map(function ($beneficio) {
+            $empleado = Empleado::findOrFail($beneficio->empleado_id);
+            $beneficio->setAttribute('codigo_empleado', $empleado->codigo_empleado);
+            $beneficio->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
+
+            return $beneficio;
+        });
+
         return response()->json([
-            'success' => false,
-            'message' => 'No hay registros en la tabla.',
-        ]);
+            'success' => true,
+            'data' => $formattedBeneficios,
+        ], 201);
     }
-
-    return response()->json([
-        'success' => true,
-        'data' => $beneficios,
-    ]);
-}
 
     /**
      * Store a newly created resource in storage.
@@ -45,34 +45,37 @@ class BeneficiosController extends Controller
         $validator = Validator::make($request->all(), [
             'empleado_id' => 'required|exists:empleados,id',
             'beneficio' => 'required|string|max:255',
-            'monto' => 'required|numeric|min:0',
-        ], [
-            'empleado_id.required' => 'El id de empleado es requerido',
+            'monto' => 'required|numeric',
+            'tipo_beneficio' => 'required||string|max:255',
+            'estado' => 'required|in:Activo,Inactivo',
+        ],[
+            'empleado_id.required' => 'El empleado es requerido',
             'empleado_id.exists' => 'El empleado no existe',
-            'beneficio.required' => 'El Beneficio es requerido',
-            'beneficio.string' => 'El Beneficio debe ser una descripcion',
+            'beneficio.required' => 'El nombre de beneficio es requerida',
             'monto.required' => 'El monto es requerido',
-            'monto.numeric' => 'El monto debe ser numeros',
+            'monto.numeric' => 'El monto debe ser numero',
+            'tipo_beneficio.required' => 'El Tipo de Beneficio es requerido',
+            'estado.required' => 'El estado es requerido',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'msg' => 'Error en los datos enviados', 'errors' => $validator->errors()], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
         }
 
-        $empleado = Empleado::findOrFail($request->empleado_id);
-        $beneficios = Beneficios::create([
-            'empleado_id' => $request->input('empleado_id'),
-            'beneficio' => $request->input('beneficio'),
-            'monto' => $request->input('monto'),
-        ]);
-        $beneficios->setAttribute('codigo_empleado', $empleado->codigo_empleado);
-        $beneficios->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
+        // Validar si el empleado ya tiene la misma deducción
+    $deduccionExistente = Beneficios::where('empleado_id', $request->empleado_id)
+    ->where('beneficio', $request->beneficio)
+    ->first();
 
-        return response()->json([
-        'success' => true, 
-        'message' => 'Beneficios creado con éxito', 
-        'data' => $beneficios,
-    ], 201);
+    if ($deduccionExistente) {
+        return response()->json(['success' => false, 'message' => 'El empleado ya tiene este beneficio.'], 404);
+    }
+
+        $Beneficios = Beneficios::create($request->all());
+        $empleado = Empleado::findOrFail($request->empleado_id);
+        $Beneficios->setAttribute('codigo_empleado', $empleado->codigo_empleado);
+        $Beneficios->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
+        return response()->json(['success' => true,  'message' => 'Beneficio Registrado.', 'data' => $Beneficios]);
     }
 
     /**
@@ -80,19 +83,19 @@ class BeneficiosController extends Controller
      */
     public function show(string $id)
     {
-        $Beneficios = Beneficios::find($id);
+        $beneficio = Beneficios::find($id);
 
-        if (!$Beneficios) {
+        if (!$beneficio) {
             return response()->json([
                 'success' => false,
-                'message' => 'Beneficios no encontrado',
+                'message' => 'Beneficio no encontrado.',
             ], 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $Beneficios,
-        ]);
+        $montoFormateado = 'RD$' . number_format($beneficio->monto, 2, '.', '');
+        $beneficio->monto = $montoFormateado;
+
+        return response()->json(['success' => true, 'data' => $beneficio]);
     }
 
     /**
@@ -100,44 +103,49 @@ class BeneficiosController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Validar los datos recibidos del formulario
-        $request->validate([
-            'empleado_id' => 'required|exists:empleados,id',
-            'beneficio' => 'required|string|max:255',
-            'monto' => 'required|numeric|min:0',
-        ],
-        [
-            'empleado_id.required' => 'El id de empleado es requerido',
-            'empleado_id.exists' => 'El empleado no existe',
-            'beneficio.required' => 'El Beneficio es requerido',
-            'beneficio.string' => 'El Beneficio debe ser una descripcion',
-            'monto.required' => 'El monto es requerido',
-            'monto.numeric' => 'El monto debe ser numeros',
-        ]);
+        $beneficio = Beneficios::find($id);
 
-        $beneficios = Beneficios::find($id);
-        if (!$beneficios) {
+        if (!$beneficio) {
             return response()->json([
                 'success' => false,
-                'message' => 'Registro no encontrado.',
-            ]);
+                'message' => 'Beneficio no encontrado.',
+            ], 404);
         }
 
-        // Actualizar los campos del modelo con los datos del formulario
-        $beneficios->update([
-            'empleado_id' => $request->input('empleado_id'),
-            'beneficio' => $request->input('beneficio'),
-            'monto' => $request->input('monto'),
+        $validator = Validator::make($request->all(), [
+            'empleado_id' => 'exists:empleados,id',
+            'beneficio' => 'string|max:255',
+            'monto' => 'numeric',
+            'tipo_beneficio' => 'string|max:255',
+            'estado' => 'in:Activo,Inactivo',
+        ],[
+            'empleado_id.required' => 'El empleado es requerido',
+            'empleado_id.exists' => 'El empleado no existe',
+            'beneficio.required' => 'El nombre de beneficio es requerida',
+            'monto.required' => 'El monto es requerido',
+            'monto.numeric' => 'El monto debe ser numero',
+            'tipo_beneficio.required' => 'El Tipo de Beneficio es requerido',
+            'estado.required' => 'El estado es requerido',
         ]);
 
-         $empleado = Empleado::findOrFail($beneficios->empleado_id);
-        $beneficios->setAttribute('codigo_empleado', $empleado->codigo_empleado);
-        $beneficios->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
-        return response()->json([
-            'success' => true,
-            'message' => 'Registro actualizado exitosamente.',
-            'data' => $beneficios,
-        ]);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
+        }
+
+        $deduccionExistente = Beneficios::where('empleado_id', $request->empleado_id)
+    ->where('beneficio', $request->beneficio)
+     ->whereNotIn('id', [$id]) 
+    ->first();
+
+    if ($deduccionExistente) {
+        return response()->json(['success' => false, 'message' => 'El empleado ya tiene este beneficio.'], 404);
+    }
+    
+        $beneficio->update($request->all());
+        $empleado = Empleado::findOrFail($request->empleado_id);
+        $beneficio->setAttribute('codigo_empleado', $empleado->codigo_empleado);
+        $beneficio->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
+        return response()->json(['success' => true, 'message' => 'Beneficio actualizado.','data' => $beneficio]);
     }
 
     /**
@@ -150,15 +158,15 @@ class BeneficiosController extends Controller
         if (!$beneficio) {
             return response()->json([
                 'success' => false,
-                'message' => 'Registro no encontrado.',
-            ]);
+                'message' => 'Beneficio no encontrado.',
+            ], 404);
         }
 
         $beneficio->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Registro eliminado exitosamente.',
+            'message' => 'Beneficio eliminado exitosamente.',
         ]);
     }
 }

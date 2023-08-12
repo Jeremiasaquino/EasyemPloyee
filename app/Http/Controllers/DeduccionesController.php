@@ -14,52 +14,71 @@ class DeduccionesController extends Controller
      */
     public function index()
     {
-        $deduccion = Deducciones::all();
-
-        if ($deduccion->isEmpty()) {
+        $Deducciones = Deducciones::all();
+        if ($Deducciones->isEmpty()) {
             return response()->json([
                 'success' => false,
                 'message' => 'No hay registros en la tabla.',
             ], 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $deduccion,
-        ], 200);
+        $formattedDeducciones = $Deducciones->map(function ($deduccion) {
+            $monto = $deduccion->monto;
+
+            $empleado = Empleado::findOrFail($deduccion->empleado_id);
+            $deduccion->setAttribute('codigo_empleado', $empleado->codigo_empleado);
+            $deduccion->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
+
+            return $deduccion;
+        });
+
+        return response()->json(['success' => true, 'data' => $formattedDeducciones], 201);
     }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'deduccion' => 'required|unique:deducciones|string|max:255',
-            'porcentaje_deduccion' => 'required|numeric|min:0|max:100',
-        ], [
-            'deduccion.required' => 'La deduccion es requerida',
-            'deduccion.unique' => 'La deduccion debe ser unica',
-            'porcentaje_deduccion.required' => 'El porcentaje es requerido',
-            'porcentaje_deduccion.max' => 'El porcentaje Debe tener maximo 3 digitos',
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'empleado_id' => 'required|exists:empleados,id',
+        'deduccion' => 'required|string|max:255',
+        'monto' => 'required|numeric',
+        'tipo_deduccion' => 'required|in:Fijo,Porcentaje',
+        'estado' => 'required|in:Activa,Inactiva',
+    ], [
+        'empleado_id.required' => 'El empleado es requerido',
+        'empleado_id.exists' => 'El empleado no existe',
+        'deduccion.required' => 'La deduccion es requerida',
+        'monto.required' => 'El monto es requerido',
+        'monto.numeric' => 'El monto debe ser numero',
+        'tipo_deduccion.required' => 'El Tipo de deduccion es requerido',
+        'estado.required' => 'El estado es requerido',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Error en los datos enviados', 'errors' => $validator->errors()], 422);
-        }
-
-        // Verificar si se proporciona el porcentaje o el monto
-
-        $deduccion = Deducciones::create([
-            'deduccion' => $request->input('deduccion'),
-            'porcentaje_deduccion' => $request->input('porcentaje_deduccion')
-        ]);
-
-        $value = $deduccion->porcentaje_deduccion;
-        $deduccion->porcentaje_deduccion = number_format($value, 2);
-
-        return response()->json(['success' => true, 'message' => 'Deducción creada con éxito', 'data' => $deduccion], 201);
+    if ($validator->fails()) {
+        return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
     }
+
+    // Validar si el empleado ya tiene la misma deducción
+    $deduccionExistente = Deducciones::where('empleado_id', $request->empleado_id)
+        ->where('deduccion', $request->deduccion)
+        ->first();
+
+    if ($deduccionExistente) {
+        return response()->json(['success' => false, 'message' => 'El empleado ya tiene esta deducción.'], 404);
+    }
+
+    $Deducciones = Deducciones::create($request->all());
+    $empleado = Empleado::findOrFail($request->empleado_id);
+    $Deducciones->setAttribute('codigo_empleado', $empleado->codigo_empleado);
+    $Deducciones->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
+
+    $monto = $Deducciones->monto;
+
+    return response()->json(['success' => true, 'message' => 'Deducción Registrada con exito!.', 'data' => $Deducciones]);
+}
+
 
     /**
      * Display the specified resource.
@@ -71,14 +90,13 @@ class DeduccionesController extends Controller
         if (!$deduccion) {
             return response()->json([
                 'success' => false,
-                'message' => 'Deducciones no encontrado',
+                'message' => 'Deducción no encontrada.',
             ], 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $deduccion,
-        ]);
+        $monto = $deduccion->monto;
+
+        return response()->json(['success' => true, 'data' => $deduccion]);
     }
 
     /**
@@ -89,33 +107,48 @@ class DeduccionesController extends Controller
         $deduccion = Deducciones::find($id);
 
         if (!$deduccion) {
-            return response()->json(['success' => false, 'msg' => 'No se encontró la deducción'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Deducción no encontrada.',
+            ], 404);
         }
 
         $validator = Validator::make($request->all(), [
-            'deduccion' => 'required|unique:deducciones,deduccion,' . $id . '|string|max:255',
-            'porcentaje_deduccion' => 'required|numeric|min:0|max:100',
-        ],[
+            'empleado_id' => 'exists:empleados,id',
+            'deduccion' => 'string|max:255',
+            'monto' => 'numeric',
+            'tipo_deduccion' => 'in:Fijo,Porcentaje',
+            'estado' => 'in:Activa,Inactiva',
+        ], [
+            'empleado_id.required' => 'El empleado es requerido',
+            'empleado_id.exists' => 'El empleado no existe',
             'deduccion.required' => 'La deduccion es requerida',
-            'porcentaje_deduccion.required' => 'El porcentaje es requerido',
+            'monto.required' => 'El monto es requerido',
+            'monto.numeric' => 'El monto debe ser numero',
+            'tipo_deduccion.required' => 'El Tipo de deduccion es requerido',
+            'estado.required' => 'El estado es requerido',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => 'Error en los datos enviados', 'errors' => $validator->errors()], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
         }
 
-        // Verificar si se proporciona el porcentaje o el monto
-        
+        $deduccionExistente = Deducciones::where('empleado_id', $request->empleado_id)
+        ->where('deduccion', $request->deduccion)
+        ->whereNotIn('id', [$id]) 
+        ->first();
 
-        $deduccion->update([
-            'deduccion' => $request->input('deduccion'),
-            'porcentaje_deduccion' => $request->input('porcentaje_deduccion')
-        ]);
-        
-        $value = $deduccion->porcentaje_deduccion;
-        $deduccion->porcentaje_deduccion = number_format($value, 2);
+    if ($deduccionExistente) {
+        return response()->json(['success' => false, 'message' => 'El empleado ya tiene esta deducción.'], 404);
+    }
 
-        return response()->json(['success' => true, 'message' => 'Deducción actualizada con éxito', 'data' => $deduccion], 200);
+        $deduccion->update($request->all());
+        $empleado = Empleado::findOrFail($request->empleado_id);
+        $deduccion->setAttribute('codigo_empleado', $empleado->codigo_empleado);
+        $deduccion->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
+
+            
+        return response()->json(['success' => true,  'message' => 'Deducción actualizada exitosamente.', 'data' => $deduccion]);
     }
 
     /**
@@ -126,11 +159,17 @@ class DeduccionesController extends Controller
         $deduccion = Deducciones::find($id);
 
         if (!$deduccion) {
-            return response()->json(['success' => false, 'message' => 'No se encontró la deducción'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Deducción no encontrada.',
+            ], 404);
         }
 
         $deduccion->delete();
 
-        return response()->json(['success' => true, 'message' => 'Deducción eliminada con éxito'], 200);
+        return response()->json([
+            'success' => true,
+            'message' => 'Deducción eliminada exitosamente.',
+        ]);
     }
 }

@@ -16,23 +16,24 @@ class PrestamosController extends Controller
     {
         $Prestamos = Prestamos::all();
 
-        $Prestamos = $Prestamos->map(function ($prestamo) {
+        if ($Prestamos->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay registros en la tabla.',
+            ], 400);
+        }
+
+        $formattedPrestamos = $Prestamos->map(function ($prestamo) {
             $empleado = Empleado::findOrFail($prestamo->empleado_id);
             $prestamo->setAttribute('codigo_empleado', $empleado->codigo_empleado);
             $prestamo->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
             return $prestamo;
         });
-        if ($Prestamos->isEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No hay registros en la tabla.',
-            ]);
-        }
 
         return response()->json([
             'success' => true,
-            'data' => $Prestamos,
-        ]);
+            'data' => $formattedPrestamos,
+        ], 200);
     }
 
     /**
@@ -41,32 +42,21 @@ class PrestamosController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'fecha' => 'required|date', 'date_format:Y-m-d',
-            'monto' => 'required|numeric',
             'empleado_id' => 'required|exists:empleados,id',
-        ],[
-            'fecha.required' => 'La fecha es requerida',
-            'fecha.date' => 'La fecha debe ser tipo y-m-d',
-            'monto.required' => 'El monto es requerido',
-            'monto.numeric' => 'El monto debe ser numerico',
-            'empleado_id.required' => 'El id del empleado es requerido',
-            'empleado_id.exists' => 'No se encontro ningun empleado con ese id',
+            'monto' => 'required|numeric',
+            // 'fecha_prestamo' => 'required|date',
+            'estado' => 'required|in:Activo,Pagado',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'msg' => 'Error en los datos enviados', 'errors' => $validator->errors()], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
         }
-
-        $Prestamos = Prestamos::create([
-            'empleado_id' => $request->input('empleado_id'),
-            'fecha' => $request->input('fecha'),
-            'monto' => $request->input('monto'),
-        ]);
+        $request['fecha_prestamo'] = now()->format('Y-m-d'); // Establecer la fecha actual
+        $Prestamos = Prestamos::create($request->all());
         $empleado = Empleado::findOrFail($request->empleado_id);
         $Prestamos->setAttribute('codigo_empleado', $empleado->codigo_empleado);
         $Prestamos->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
-
-        return response()->json(['success' => true, 'message' => 'Prestamo creado con éxito', 'data' => $Prestamos], 201);
+        return response()->json(['success' => true,'message' => 'Prestamo registrado.', 'data' => $Prestamos]);
     }
 
     /**
@@ -74,19 +64,19 @@ class PrestamosController extends Controller
      */
     public function show(string $id)
     {
-        $Prestamos = Prestamos::find($id);
+        $prestamo = Prestamos::find($id);
 
-        if (!$Prestamos) {
+        if (!$prestamo) {
             return response()->json([
                 'success' => false,
-                'message' => 'Prestamo no encontrado',
+                'message' => 'Prestamo no encontrado.',
             ], 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $Prestamos,
-        ]);
+        $montoFormateado = 'RD$' . number_format($prestamo->monto, 2, '.', '');
+        $prestamo->monto = $montoFormateado;
+
+        return response()->json(['success' => true, 'data' => $prestamo]);
     }
 
     /**
@@ -94,44 +84,32 @@ class PrestamosController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $prestamo = Prestamos::find($id);
 
-        $validator = Validator::make($request->all(), [
-            'fecha' => 'required|date', 'date_format:Y-m-d',
-            'monto' => 'required|numeric',
-            'empleado_id' => 'required|exists:empleados,id',
-        ], [
-            'fecha.required' => 'La fecha es requerida',
-            'fecha.date' => 'La fecha debe ser tipo y-m-d',
-            'monto.required' => 'El monto es requerido',
-            'monto.numeric' => 'El monto debe ser numerico',
-            'empleado_id.required' => 'El id del empleado es requerido',
-            'empleado_id.exists' => 'No se encontro ningun empleado con ese id',
-        ]);
-
-        $Prestamos = Prestamos::find($id);
-
-        if (!$Prestamos) {
+        if (!$prestamo) {
             return response()->json([
                 'success' => false,
-                'message' => 'Registro no encontrado.',
-            ]);
+                'message' => 'Prestamo no encontrado.',
+            ], 404);
         }
 
-        // Actualizar los campos del modelo con los datos del formulario
-        $Prestamos->update([
-            'empleado_id' => $request->input('empleado_id'),
-            'fecha' => $request->input('fecha'),
-            'monto' => $request->input('monto'),
+        $validator = Validator::make($request->all(), [
+            'empleado_id' => 'exists:empleados,id',
+            'monto' => 'numeric',
+            'fecha_prestamo' => 'date:Y-m-d',
+            'estado' => 'in:Activo,Pagado',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
+        }
+
+        $prestamo->update($request->all());
         $empleado = Empleado::findOrFail($request->empleado_id);
-        $Prestamos->setAttribute('codigo_empleado', $empleado->codigo_empleado);
-        $Prestamos->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Registro actualizado exitosamente.',
-            'data' => $Prestamos,
-        ]);
+        $prestamo->setAttribute('codigo_empleado', $empleado->codigo_empleado);
+        $prestamo->setAttribute('nombre', $empleado->nombre . ' ' . $empleado->apellidos);
+
+        return response()->json(['success' => true, 'message' => 'Prestamo no actualizado', 'data' => $prestamo]);
     }
 
 
@@ -140,20 +118,20 @@ class PrestamosController extends Controller
      */
     public function destroy(string $id)
     {
-        $Prestamos = Prestamos::find($id);
+        $prestamo = Prestamos::find($id);
 
-        if (!$Prestamos) {
+        if (!$prestamo) {
             return response()->json([
                 'success' => false,
-                'message' => 'Registro no encontrado.',
-            ]);
+                'message' => 'Prestamo no encontrado.',
+            ], 404);
         }
 
-        $Prestamos->delete();
+        $prestamo->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Registro eliminado exitosamente.',
+            'message' => 'Prestamo eliminado exitosamente.',
         ]);
     }
 }

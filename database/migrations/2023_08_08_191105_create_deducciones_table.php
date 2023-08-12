@@ -13,13 +13,15 @@ return new class extends Migration
     {
         Schema::create('deducciones', function (Blueprint $table) {
             $table->id();
-            $table->string('deduccion')->unique();
-            $table->decimal('porcentaje_deduccion', 5, 2);
-            // $table->decimal('monto', 10, 2);
+            $table->unsignedBigInteger('empleado_id');
+            $table->string('deduccion'); // Nombre de la deducción (ejemplo: "Seguro Médico")
+            $table->decimal('monto', 10, 2); // Monto de la deducción
+            $table->enum('tipo_deduccion', ['Fijo', 'Porcentaje']); // Tipo de deducción (Fijo, Porcentaje)
+            $table->enum('estado', ['Activa', 'Inactiva']); // Estado de la deducción (Activa, Inactiva)
             $table->timestamps();
 
             // Foreign key constraint for empleado_id
-            // $table->foreign('empleado_id')->references('id')->on('empleados')->onDelete('cascade');
+            $table->foreign('empleado_id')->references('id')->on('empleados')->onDelete('cascade');
 
         });
     }

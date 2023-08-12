@@ -13,13 +13,16 @@ class Deducciones extends Model
     protected $table = 'deducciones';
 
     protected $fillable = [
+        'empleado_id',
         'deduccion',
-        'porcentaje_deduccion',
+        'monto',
+        'tipo_deduccion',
+        'estado',
     ];
 
     // Relación con el modelo "Empleado"
-    // public function empleado()
-    // {
-    //     return $this->belongsTo(Empleado::class, 'empleado_id');
-    // }
+    public function empleado()
+    {
+        return $this->belongsTo(Empleado::class, 'empleado_id');
+    }
 }

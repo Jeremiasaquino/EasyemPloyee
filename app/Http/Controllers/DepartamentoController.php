@@ -111,7 +111,6 @@ class DepartamentoController extends Controller
 {
     $departamento = Departamento::findOrFail($id);
     $deleted = $departamento->delete();
-    echo($deleted);
     
     if (!$deleted) {
         // El departamento no fue eliminado

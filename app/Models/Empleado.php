@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -74,6 +73,24 @@ class Empleado extends Model
     public function getNombreCompletoAttribute()
     {
         return $this->nombre . ' ' . $this->apellidos;
+    }
+
+    public function Beneficios()
+    {
+        return $this->hasMany(Beneficios::class);
+    }
+    public function Deducciones()
+    {
+        return $this->hasMany(Deducciones::class);
+    }
+    public function Prestamos()
+    {
+        return $this->hasMany(Prestamos::class);
+    }
+
+    public function Asistencia()
+    {
+        return $this->hasOne(Asistencia::class);
     }
 
 
