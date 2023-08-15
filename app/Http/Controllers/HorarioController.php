@@ -143,13 +143,13 @@ class HorarioController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'No se puede eliminar el horario porque hay empleados asignados a él.',
-            ]);
+            ], 404);
         }
         else{
             return response()->json([
                 'success' => true,
                 'message' => 'Horario eliminado exitosamente.',
-            ]);
+            ], 201);
         }
     }
 }
